@@ -107,7 +107,7 @@ class WofryWidget(AutomaticWidget):
 
 
             self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
-            self.plot_canvas[plot_canvas_index].setActiveCurveColor(color='darkblue')
+            self.plot_canvas[plot_canvas_index].setActiveCurveColor(color='blue')
             self.plot_canvas[plot_canvas_index].setGraphXLabel(xtitle)
             self.plot_canvas[plot_canvas_index].setGraphYLabel(ytitle)
 
