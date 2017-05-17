@@ -2,7 +2,10 @@
 
 import os
 
-from setuptools import find_packages, setup
+try:
+    from setuptools import find_packages, setup
+except AttributeError:
+    from setuptools import find_packages, setup
 
 NAME = 'OASYS-WOFRY'
 VERSION = '1.0.0'
