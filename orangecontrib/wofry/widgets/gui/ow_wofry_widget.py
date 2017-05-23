@@ -2,7 +2,7 @@ import numpy
 
 from silx.gui.plot import PlotWindow, Plot2D
 
-from PyQt4 import QtGui
+from PyQt5 import QtWidgets
 
 from orangewidget import gui
 from orangewidget.settings import Setting
@@ -45,7 +45,7 @@ class WofryWidget(AutomaticWidget):
 
         self.initializeTabs()
 
-        self.wofry_output = QtGui.QTextEdit()
+        self.wofry_output = QtWidgets.QTextEdit()
         self.wofry_output.setReadOnly(True)
 
         out_box = gui.widgetBox(out_tab, "System Output", addSpace=True, orientation="horizontal")
@@ -68,9 +68,9 @@ class WofryWidget(AutomaticWidget):
 
             self.plot_results()
         except Exception as exception:
-            QtGui.QMessageBox.critical(self, "Error",
+            QtWidgets.QMessageBox.critical(self, "Error",
                                        str(exception),
-                QtGui.QMessageBox.Ok)
+                QtWidgets.QMessageBox.Ok)
 
         self.progressBarFinished()
 
