@@ -28,7 +28,7 @@ class WofryWidget(AutomaticWidget):
     def __init__(self, is_automatic=True):
         super().__init__(is_automatic)
 
-        self.main_tabs = oasysgui.TabWidget(self.mainArea)
+        self.main_tabs = oasysgui.tabWidget(self.mainArea)
         plot_tab = oasysgui.createTabPage(self.main_tabs, "Results")
         out_tab = oasysgui.createTabPage(self.main_tabs, "Output")
 
@@ -41,7 +41,7 @@ class WofryWidget(AutomaticWidget):
                                             callback=self.set_ViewType, sendSelectedValue=False, orientation="horizontal")
 
         self.tab = []
-        self.tabs = oasysgui.TabWidget(plot_tab)
+        self.tabs = oasysgui.tabWidget(plot_tab)
 
         self.initializeTabs()
 
