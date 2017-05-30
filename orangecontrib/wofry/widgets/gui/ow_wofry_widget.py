@@ -1,6 +1,6 @@
 import numpy
 
-from silx.gui.plot import PlotWindow, Plot2D
+from silx.gui.plot import Plot2D
 
 from PyQt5 import QtWidgets
 
@@ -86,24 +86,24 @@ class WofryWidget(AutomaticWidget):
                    log_x=False, log_y=False, color='blue', replace=True, control=False):
 
         if self.plot_canvas[plot_canvas_index] is None:
-            self.plot_canvas[plot_canvas_index] = PlotWindow(parent=None,
-                                                             backend=None,
-                                                             resetzoom=True,
-                                                             autoScale=False,
-                                                             logScale=True,
-                                                             grid=True,
-                                                             curveStyle=True,
-                                                             colormap=False,
-                                                             aspectRatio=False,
-                                                             yInverted=False,
-                                                             copy=True,
-                                                             save=True,
-                                                             print_=True,
-                                                             control=control,
-                                                             position=True,
-                                                             roi=False,
-                                                             mask=False,
-                                                             fit=False)
+            self.plot_canvas[plot_canvas_index] = oasysgui.plotWindow(parent=None,
+                                                                      backend=None,
+                                                                      resetzoom=True,
+                                                                      autoScale=False,
+                                                                      logScale=True,
+                                                                      grid=True,
+                                                                      curveStyle=True,
+                                                                      colormap=False,
+                                                                      aspectRatio=False,
+                                                                      yInverted=False,
+                                                                      copy=True,
+                                                                      save=True,
+                                                                      print_=True,
+                                                                      control=control,
+                                                                      position=True,
+                                                                      roi=False,
+                                                                      mask=False,
+                                                                      fit=False)
 
 
             self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
