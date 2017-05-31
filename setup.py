@@ -7,7 +7,7 @@ try:
 except AttributeError:
     from setuptools import find_packages, setup
 
-NAME = 'OASYS-WOFRY'
+NAME = 'OASYS1-WOFRY'
 VERSION = '1.0.0'
 ISRELEASED = False
 
