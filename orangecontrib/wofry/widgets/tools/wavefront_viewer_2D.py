@@ -13,39 +13,29 @@ from wofry.propagator.wavefront2D.generic_wavefront import GenericWavefront2D
 
 from orangecontrib.wofry.widgets.gui.ow_wofry_widget import WofryWidget
 
-class OW2Dto1D(WofryWidget):
+class WavefrontViewer2D(WofryWidget):
 
-    name = "Wavefront 2D to 1D"
-    id = "Wavefront2Dto1D"
-    description = "Wavefront 2D to 1D"
-    icon = "icons/2d_to_1d.png"
-    priority = 3
+    name = "Wavefront Viewer 2D"
+    id = "WavefrontViewer2D"
+    description = "Wavefront Viewer 2D"
+    icon = "icons/wv2d.png"
+    priority = 2
 
     category = "Wofry Tools"
     keywords = ["data", "file", "load", "read"]
 
     inputs = [("GenericWavefront2D", GenericWavefront2D, "set_input")]
 
-    outputs = [{"name":"GenericWavefront1D",
-                "type":GenericWavefront1D,
-                "doc":"GenericWavefront1D",
-                "id":"GenericWavefront1D"}]
-
-    section_axis  = Setting(0)
-    section_coordinate = Setting(0.0)
-
     wavefront2D = None
 
     def __init__(self):
-        super().__init__(is_automatic=True)
+        super().__init__(is_automatic=False, show_view_options=False)
 
-        self.runaction = widget.OWAction("Send Data", self)
-        self.runaction.triggered.connect(self.send_data)
-        self.addAction(self.runaction)
+        gui.separator(self.controlArea)
 
         button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
 
-        button = gui.button(button_box, self, "Send Data", callback=self.send_data)
+        button = gui.button(button_box, self, "Refresh", callback=self.refresh)
         font = QFont(button.font())
         font.setBold(True)
         button.setFont(font)
@@ -59,16 +49,10 @@ class OW2Dto1D(WofryWidget):
         self.controlArea.setFixedWidth(self.CONTROL_AREA_WIDTH)
 
         tabs_setting = oasysgui.tabWidget(self.controlArea)
-        tabs_setting.setFixedHeight(self.TABS_AREA_HEIGHT)
+        tabs_setting.setFixedHeight(self.TABS_AREA_HEIGHT+50)
         tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
 
-        self.tab_sou = oasysgui.createTabPage(tabs_setting, "Wavefront Projection Setting")
-
-        gui.comboBox(self.tab_sou, self, "section_axis", label="Section Axis", labelWidth=220,
-                     items=["Horizontal (0)", "Vertical (1)"],
-                     sendSelectedValue=False, orientation="horizontal")
-
-        oasysgui.lineEdit(self.tab_sou, self, "section_coordinate", "Section at", labelWidth=260, valueType=float, orientation="horizontal")
+        self.tab_sou = oasysgui.createTabPage(tabs_setting, "Wavefront Viewer Settings")
 
     def initializeTabs(self):
         size = len(self.tab)
@@ -77,7 +61,7 @@ class OW2Dto1D(WofryWidget):
         for index in indexes:
             self.tabs.removeTab(size-1-index)
 
-        titles = ["Wavefront 2D", "Wavefront 1D"]
+        titles = ["Wavefront 2D"]
         self.tab = []
         self.plot_canvas = []
 
@@ -89,31 +73,24 @@ class OW2Dto1D(WofryWidget):
             tab.setFixedHeight(self.IMAGE_HEIGHT)
             tab.setFixedWidth(self.IMAGE_WIDTH)
 
+
     def set_input(self, wavefront2D):
         if not wavefront2D is None:
             self.wavefront2D = wavefront2D
 
-            if self.is_automatic_execution:
-                self.send_data()
+            self.refresh()
 
-    def send_data(self):
+    def refresh(self):
         if not self.wavefront2D is None:
-            self.progressBarInit()
-
-            self.wavefront1D = self.wavefront2D.get_Wavefront1D_from_profile(self.section_axis, self.section_coordinate)
-
+            self.initializeTabs()
             self.plot_results()
 
-            self.progressBarFinished()
-
-            self.send("GenericWavefront1D", self.wavefront1D)
-
     def do_plot_results(self, progressBarValue):
-        if not self.wavefront2D is None and not self.wavefront1D is None:
+        if not self.wavefront2D is None:
 
             self.progressBarSet(progressBarValue)
 
-            titles = ["Wavefront 2D Intensity", "Wavefront 1D Intensity"]
+            titles = ["Wavefront 2D Intensity"]
 
             self.plot_data2D(data2D=self.wavefront2D.get_intensity(),
                              dataX=self.wavefront2D.get_coordinate_x(),
@@ -125,14 +102,5 @@ class OW2Dto1D(WofryWidget):
                              xtitle="Horizontal Coordinate",
                              ytitle="Vertical Coordinate")
 
-            self.plot_data1D(x=self.wavefront1D.get_abscissas(),
-                             y=self.wavefront1D.get_intensity(),
-                             progressBarValue=progressBarValue + 25,
-                             tabs_canvas_index=1,
-                             plot_canvas_index=1,
-                             title=titles[1],
-                             xtitle="Horizontal Coordinate" if self.section_axis == 0 else "Vertical Coordinate",
-                             ytitle="Intensity")
 
-
-
+            self.progressBarFinished()

@@ -25,25 +25,30 @@ class WofryWidget(AutomaticWidget):
 
     view_type=Setting(1)
 
-    def __init__(self, is_automatic=True):
+    def __init__(self, is_automatic=True, show_view_options=True):
         super().__init__(is_automatic)
 
         self.main_tabs = oasysgui.tabWidget(self.mainArea)
         plot_tab = oasysgui.createTabPage(self.main_tabs, "Results")
         out_tab = oasysgui.createTabPage(self.main_tabs, "Output")
 
-        view_box = oasysgui.widgetBox(plot_tab, "Results Options", addSpace=False, orientation="horizontal")
-        view_box_1 = oasysgui.widgetBox(view_box, "", addSpace=False, orientation="vertical", width=350)
+        if show_view_options == True:
+            view_box = oasysgui.widgetBox(plot_tab, "Results Options", addSpace=False, orientation="horizontal")
+            view_box_1 = oasysgui.widgetBox(view_box, "", addSpace=False, orientation="vertical", width=350)
 
-        self.view_type_combo = gui.comboBox(view_box_1, self, "view_type", label="View Results",
-                                            labelWidth=220,
-                                            items=["No", "Yes"],
-                                            callback=self.set_ViewType, sendSelectedValue=False, orientation="horizontal")
+            self.view_type_combo = gui.comboBox(view_box_1, self, "view_type", label="View Results",
+                                                labelWidth=220,
+                                                items=["No", "Yes"],
+                                                callback=self.set_ViewType, sendSelectedValue=False, orientation="horizontal")
+        else:
+            self.view_type = 1
 
         self.tab = []
         self.tabs = oasysgui.tabWidget(plot_tab)
 
         self.initializeTabs()
+
+        self.set_ViewType()
 
         self.wofry_output = QtWidgets.QTextEdit()
         self.wofry_output.setReadOnly(True)
@@ -65,12 +70,13 @@ class WofryWidget(AutomaticWidget):
 
         try:
             self.initializeTabs()
-
             self.plot_results()
         except Exception as exception:
             QtWidgets.QMessageBox.critical(self, "Error",
                                        str(exception),
                 QtWidgets.QMessageBox.Ok)
+
+            #raise exception
 
         self.progressBarFinished()
 
