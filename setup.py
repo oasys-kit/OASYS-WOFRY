@@ -22,7 +22,7 @@ LICENSE = 'GPLv3'
 
 KEYWORDS = (
     'simulator',
-    'oasys',
+    'oasys1',
 )
 
 CLASSIFIERS = (
