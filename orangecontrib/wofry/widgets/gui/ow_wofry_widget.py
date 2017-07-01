@@ -50,14 +50,10 @@ class WofryWidget(AutomaticWidget):
 
         self.set_ViewType()
 
-        self.wofry_output = QtWidgets.QTextEdit()
-        self.wofry_output.setReadOnly(True)
+        self.wofry_output = oasysgui.textArea(height=600, width=600)
 
         out_box = gui.widgetBox(out_tab, "System Output", addSpace=True, orientation="horizontal")
         out_box.layout().addWidget(self.wofry_output)
-
-        self.wofry_output.setFixedHeight(600)
-        self.wofry_output.setFixedWidth(600)
 
         gui.rubber(self.mainArea)
 
