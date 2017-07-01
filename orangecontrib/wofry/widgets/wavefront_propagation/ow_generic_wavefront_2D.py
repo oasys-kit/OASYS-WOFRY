@@ -15,7 +15,7 @@ class OWGenericWavefront2D(WofryWidget):
     name = "Generic Wavefront 2D"
     id = "GenericWavefront2D"
     description = "Generic Wavefront 2D"
-    icon = "icons/gw2d.jpg"
+    icon = "icons/gw2d.png"
     priority = 2
 
     category = "Wofry Wavefront Propagation"
