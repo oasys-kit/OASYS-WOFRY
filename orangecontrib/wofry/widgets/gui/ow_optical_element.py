@@ -63,6 +63,13 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
     input_wavefront = None
     wavefront_to_plot = None
 
+    propagators_list = ["Fresnel", "Fresnel (Convolution)", "Fraunhofer", "Integral"]
+
+    propagator = Setting(0)
+    shift_half_pixel = Setting(1)
+
+    shuffle_interval = Setting(0)
+    calculate_grid_only = Setting(1)
 
     def __init__(self):
         super().__init__()
@@ -110,6 +117,7 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
         self.tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
 
         self.tab_bas = oasysgui.createTabPage(self.tabs_setting, "O.E. Setting")
+        self.tab_pro = oasysgui.createTabPage(self.tabs_setting, "Propagation Setting")
 
         oasysgui.lineEdit(self.tab_bas, self, "oe_name", "O.E. Name", labelWidth=260, valueType=str, orientation="horizontal")
 
@@ -121,6 +129,40 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
         oasysgui.lineEdit(self.coordinates_box, self, "angle_azimuthal", "Rotation along Beam Axis [deg]", labelWidth=280, valueType=float, orientation="horizontal")
 
         self.draw_specific_box()
+
+        gui.comboBox(self.tab_pro, self, "propagator", label="Propagator", labelWidth=260,
+                     items=self.propagators_list,
+                     callback=self.set_Propagator,
+                     sendSelectedValue=False, orientation="horizontal")
+
+        self.fresnel_box = oasysgui.widgetBox(self.tab_pro, "", addSpace=False, orientation="vertical", height=90)
+
+        gui.comboBox(self.fresnel_box, self, "shift_half_pixel", label="Shift Half Pixel", labelWidth=260,
+                     items=["No", "Yes"],
+                     sendSelectedValue=False, orientation="horizontal")
+
+        self.fraunhofer_box = oasysgui.widgetBox(self.tab_pro, "", addSpace=False, orientation="vertical", height=90)
+
+        gui.comboBox(self.fraunhofer_box, self, "shift_half_pixel", label="Shift Half Pixel", labelWidth=260,
+                     items=["No", "Yes"],
+                     sendSelectedValue=False, orientation="horizontal")
+
+        self.integral_box = oasysgui.widgetBox(self.tab_pro, "", addSpace=False, orientation="vertical", height=90)
+
+
+        oasysgui.lineEdit(self.integral_box, self, "shuffle_interval", "Shuffle Interval (0=no shift) [m]", labelWidth=260, valueType=float, orientation="horizontal")
+
+        gui.comboBox(self.integral_box, self, "calculate_grid_only", label="Calculate Grid Only", labelWidth=260,
+                     items=["No", "Yes"],
+                     sendSelectedValue=False, orientation="horizontal")
+
+        self.set_Propagator()
+
+
+    def set_Propagator(self):
+        self.fresnel_box.setVisible(self.propagator <= 1)
+        self.fraunhofer_box.setVisible(self.propagator == 2)
+        self.integral_box.setVisible(self.propagator == 3)
 
     def draw_specific_box(self):
         raise NotImplementedError()
@@ -151,14 +193,15 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
 
             propagation_elements.add_beamline_element(beamline_element)
 
-            propagation_parameters = PropagationParameters(wavefront=self.input_wavefront,
+            propagation_parameters = PropagationParameters(wavefront=self.input_wavefront.duplicate(),
                                                            propagation_elements = propagation_elements)
-            propagation_parameters.set_additional_parameters("shift_half_pixel", True)
+
+            self.set_additional_parameters(propagation_parameters)
 
             propagator = PropagationManager.Instance()
 
             output_wavefront = propagator.do_propagation(propagation_parameters=propagation_parameters,
-                                                         handler_name=Fresnel2D.HANDLER_NAME)
+                                                         handler_name=self.get_handler_name())
 
 
             self.wavefront_to_plot = output_wavefront
@@ -175,6 +218,24 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
             self.progressBarFinished()
 
             raise e
+
+    def get_handler_name(self):
+        if self.propagator == 0:
+            return Fresnel2D.HANDLER_NAME
+        elif self.propagator == 1:
+            return FresnelConvolution2D.HANDLER_NAME
+        elif self.propagator == 2:
+            return Fraunhofer2D.HANDLER_NAME
+        elif self.propagator == 3:
+            return Integral2D.HANDLER_NAME
+
+    def set_additional_parameters(self, propagation_parameters):
+        if self.propagator <= 2:
+            propagation_parameters.set_additional_parameters("shift_half_pixel", self.shift_half_pixel==1)
+        elif self.propagator == 3:
+            propagation_parameters.set_additional_parameters("shuffle_interval", self.shuffle_interval)
+            propagation_parameters.set_additional_parameters("calculate_grid_only", self.calculate_grid_only)
+
 
     def get_optical_element(self):
         raise NotImplementedError()

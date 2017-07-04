@@ -79,34 +79,36 @@ class OWGenericWavefront1D(WofryWidget):
 
         self.tab_sou = oasysgui.createTabPage(tabs_setting, "Generic Wavefront 1D Settings")
 
-        gui.comboBox(self.tab_sou, self, "units", label="Units in use", labelWidth=350,
+        box_energy = oasysgui.widgetBox(self.tab_sou, "Energy Settings", addSpace=False, orientation="vertical")
+
+        gui.comboBox(box_energy, self, "units", label="Units in use", labelWidth=350,
                      items=["Electron Volts", "Meters"],
                      callback=self.set_Units,
                      sendSelectedValue=False, orientation="horizontal")
 
-        self.units_box_1 = oasysgui.widgetBox(self.tab_sou, "", addSpace=False, orientation="vertical")
+        self.units_box_1 = oasysgui.widgetBox(box_energy, "", addSpace=False, orientation="vertical")
 
         oasysgui.lineEdit(self.units_box_1, self, "energy", "Photon Energy [eV]",
                           labelWidth=300, valueType=float, orientation="horizontal")
 
-        self.units_box_2 = oasysgui.widgetBox(self.tab_sou, "", addSpace=False, orientation="vertical")
+        self.units_box_2 = oasysgui.widgetBox(box_energy, "", addSpace=False, orientation="vertical")
 
         oasysgui.lineEdit(self.units_box_2, self, "wavelength", "Photon Wavelength [m]",
                           labelWidth=300, valueType=float, orientation="horizontal")
 
         self.set_Units()
 
-        gui.separator(self.tab_sou)
+        box_space = oasysgui.widgetBox(self.tab_sou, "Space Settings", addSpace=False, orientation="vertical")
 
-        oasysgui.lineEdit(self.tab_sou, self, "number_of_points", "Number of Points",
+        oasysgui.lineEdit(box_space, self, "number_of_points", "Number of Points",
                           labelWidth=300, valueType=int, orientation="horizontal")
 
-        gui.comboBox(self.tab_sou, self, "initialize_from", label="Space Initialization", labelWidth=350,
+        gui.comboBox(box_space, self, "initialize_from", label="Space Initialization", labelWidth=350,
                      items=["From Range", "From Steps"],
                      callback=self.set_Initialization,
                      sendSelectedValue=False, orientation="horizontal")
 
-        self.initialization_box_1 = oasysgui.widgetBox(self.tab_sou, "", addSpace=False, orientation="vertical")
+        self.initialization_box_1 = oasysgui.widgetBox(box_space, "", addSpace=False, orientation="vertical")
 
         oasysgui.lineEdit(self.initialization_box_1, self, "range_from", "From  [m]",
                           labelWidth=300, valueType=float, orientation="horizontal")
@@ -114,7 +116,7 @@ class OWGenericWavefront1D(WofryWidget):
         oasysgui.lineEdit(self.initialization_box_1, self, "range_to", "To [m]",
                           labelWidth=300, valueType=float, orientation="horizontal")
 
-        self.initialization_box_2 = oasysgui.widgetBox(self.tab_sou, "", addSpace=False, orientation="vertical")
+        self.initialization_box_2 = oasysgui.widgetBox(box_space, "", addSpace=False, orientation="vertical")
 
         oasysgui.lineEdit(self.initialization_box_2, self, "steps_start", "Start [m]",
                           labelWidth=300, valueType=float, orientation="horizontal")
@@ -124,16 +126,16 @@ class OWGenericWavefront1D(WofryWidget):
 
         self.set_Initialization()
 
-        gui.separator(self.tab_sou)
+        box_amplitude = oasysgui.widgetBox(self.tab_sou, "Amplitude Settings", addSpace=False, orientation="vertical")
 
-        gui.comboBox(self.tab_sou, self, "kind_of_wave", label="Kind of Wave", labelWidth=350,
+        gui.comboBox(box_amplitude, self, "kind_of_wave", label="Kind of Wave", labelWidth=350,
                      items=["Plane", "Spherical"],
                      callback=self.set_KindOfWave,
                      sendSelectedValue=False, orientation="horizontal")
 
 
-        self.plane_box = oasysgui.widgetBox(self.tab_sou, "", addSpace=False, orientation="vertical", height=90)
-        self.spherical_box = oasysgui.widgetBox(self.tab_sou, "", addSpace=False, orientation="vertical", height=90)
+        self.plane_box = oasysgui.widgetBox(box_amplitude, "", addSpace=False, orientation="vertical", height=90)
+        self.spherical_box = oasysgui.widgetBox(box_amplitude, "", addSpace=False, orientation="vertical", height=90)
 
         gui.comboBox(self.plane_box, self, "initialize_amplitude", label="Amplitude Initialization", labelWidth=350,
                      items=["Complex", "Real"],
