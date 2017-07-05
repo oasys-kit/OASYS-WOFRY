@@ -101,20 +101,11 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
 
         gui.separator(self.controlArea)
 
-        geom = QApplication.desktop().availableGeometry()
-        self.setGeometry(QRect(round(geom.width()*0.05),
-                               round(geom.height()*0.05),
-                               round(min(geom.width()*0.98, self.MAX_WIDTH)),
-                               round(min(geom.height()*0.95, self.MAX_HEIGHT))))
 
-        self.setMaximumHeight(self.geometry().height())
-        self.setMaximumWidth(self.geometry().width())
-
-        self.controlArea.setFixedWidth(self.CONTROL_AREA_WIDTH)
 
         self.tabs_setting = oasysgui.tabWidget(self.controlArea)
         self.tabs_setting.setFixedHeight(self.TABS_AREA_HEIGHT)
-        self.tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
+        self.tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-10)
 
         self.tab_bas = oasysgui.createTabPage(self.tabs_setting, "O.E. Setting")
         self.tab_pro = oasysgui.createTabPage(self.tabs_setting, "Propagation Setting")

@@ -3,6 +3,8 @@ import numpy
 from silx.gui.plot import Plot2D
 
 from PyQt5 import QtWidgets
+from PyQt5.QtWidgets import QMessageBox, QApplication
+from PyQt5.QtCore import QRect
 
 from orangewidget import gui
 from orangewidget.settings import Setting
@@ -17,9 +19,9 @@ class WofryWidget(AutomaticWidget):
     IMAGE_WIDTH = 760
     IMAGE_HEIGHT = 545
     MAX_WIDTH = 1320
-    MAX_HEIGHT = 700
-    CONTROL_AREA_WIDTH = 405
-    TABS_AREA_HEIGHT = 560
+    MAX_HEIGHT = 705
+    CONTROL_AREA_WIDTH = 410
+    TABS_AREA_HEIGHT = 545
 
     want_main_area = 1
 
@@ -28,6 +30,16 @@ class WofryWidget(AutomaticWidget):
     def __init__(self, is_automatic=True, show_view_options=True):
         super().__init__(is_automatic)
 
+        geom = QApplication.desktop().availableGeometry()
+        self.setGeometry(QRect(round(geom.width()*0.05),
+                               round(geom.height()*0.05),
+                               round(min(geom.width()*0.98, self.MAX_WIDTH)),
+                               round(min(geom.height()*0.95, self.MAX_HEIGHT))))
+
+        self.setMaximumHeight(self.geometry().height())
+        self.setMaximumWidth(self.geometry().width())
+
+        self.controlArea.setFixedWidth(self.CONTROL_AREA_WIDTH)
         self.main_tabs = oasysgui.tabWidget(self.mainArea)
         plot_tab = oasysgui.createTabPage(self.main_tabs, "Results")
         out_tab = oasysgui.createTabPage(self.main_tabs, "Output")
