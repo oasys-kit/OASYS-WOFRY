@@ -19,13 +19,13 @@ class OW2Dto1D(WofryWidget):
     id = "Wavefronts1Dto2D"
     description = "Wavefronts 1D to 2D"
     icon = "icons/1d_to_2d.png"
-    priority = 3
+    priority = 4
 
     category = "Wofry Tools"
     keywords = ["data", "file", "load", "read"]
 
     inputs = [("Horizontal Wavefront", GenericWavefront1D, "set_input_h"),
-              ("Vertical Wavefront", GenericWavefront2D, "set_input_v")]
+              ("Vertical Wavefront", GenericWavefront1D, "set_input_v")]
 
     outputs = [{"name":"GenericWavefront2D",
                 "type":GenericWavefront2D,
@@ -33,6 +33,8 @@ class OW2Dto1D(WofryWidget):
                 "id":"GenericWavefront2D"}]
 
     normalize_to = Setting(0)
+
+    wavefront2D = None
 
     wavefront1D_h = None
     wavefront1D_v = None
@@ -97,22 +99,24 @@ class OW2Dto1D(WofryWidget):
 
     def set_input_v(self, wavefront1D):
         if not wavefront1D is None:
-            self.wavefront2D_h = wavefront1D
+            self.wavefront1D_v = wavefront1D
 
             if self.is_automatic_execution:
                 self.send_data()
 
     def send_data(self):
-        if not self.wavefront2D is None:
+        if not self.wavefront1D_h is None and not self.wavefront1D_v is None:
             self.progressBarInit()
 
-            self.wavefront1D = self.wavefront2D.get_Wavefront1D_from_profile(self.section_axis, self.section_coordinate)
+            self.wavefront2D = GenericWavefront2D.combine_1D_wavefronts_into_2D(self.wavefront1D_h,
+                                                                                self.wavefront1D_v,
+                                                                                normalize_to=self.normalize_to)
 
             self.plot_results(progressBarValue=50)
 
             self.progressBarFinished()
 
-            self.send("GenericWavefront1D", self.wavefront1D)
+            self.send("GenericWavefront2D", self.wavefront2D)
 
     def do_plot_results(self, progressBarValue):
         if not self.wavefront2D is None and not self.wavefront1D_h is None and not self.wavefront1D_v is None:
@@ -124,9 +128,9 @@ class OW2Dto1D(WofryWidget):
             self.plot_data1D(x=self.wavefront1D_h.get_abscissas(),
                              y=self.wavefront1D_h.get_intensity(),
                              progressBarValue=progressBarValue + 12,
-                             tabs_canvas_index=1,
-                             plot_canvas_index=1,
-                             title=titles[1],
+                             tabs_canvas_index=0,
+                             plot_canvas_index=0,
+                             title=titles[0],
                              xtitle="Horizontal Coordinate",
                              ytitle="Intensity")
 
@@ -143,9 +147,9 @@ class OW2Dto1D(WofryWidget):
                              dataX=self.wavefront2D.get_coordinate_x(),
                              dataY=self.wavefront2D.get_coordinate_y(),
                              progressBarValue=progressBarValue + 26,
-                             tabs_canvas_index=0,
-                             plot_canvas_index=0,
-                             title=titles[0],
+                             tabs_canvas_index=2,
+                             plot_canvas_index=2,
+                             title=titles[2],
                              xtitle="Horizontal Coordinate",
                              ytitle="Vertical Coordinate")
 
