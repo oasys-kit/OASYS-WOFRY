@@ -1,8 +1,7 @@
 import numpy
 
 from PyQt5.QtGui import QPalette, QColor, QFont
-from PyQt5.QtWidgets import QMessageBox, QApplication
-from PyQt5.QtCore import QRect
+from PyQt5.QtWidgets import QMessageBox
 
 from orangewidget import gui
 from orangewidget import widget
