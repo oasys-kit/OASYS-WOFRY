@@ -68,7 +68,7 @@ class OW2Dto1D(WofryWidget):
         self.tab_sou = oasysgui.createTabPage(tabs_setting, "Wavefronts Combination Setting")
 
         gui.comboBox(self.tab_sou, self, "normalize_to", label="Normalize to", labelWidth=220,
-                     items=["Horizontal", "Vertical"],
+                     items=["Horizontal", "Vertical", "None"],
                      sendSelectedValue=False, orientation="horizontal")
 
     def initializeTabs(self):
