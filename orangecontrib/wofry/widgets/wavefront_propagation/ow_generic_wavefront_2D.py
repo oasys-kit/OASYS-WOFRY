@@ -50,6 +50,13 @@ class OWGenericWavefront2D(WofryWidget):
     complex_amplitude_im = Setting(0.0)
     radius = Setting(0.0)
 
+    gaussian_sigma_h = Setting(0.0)
+    gaussian_sigma_v = Setting(0.0)
+    gaussian_amplitude = Setting(1.0)
+    gaussian_mode_h = Setting(0)
+    gaussian_mode_v = Setting(0)
+
+
     amplitude = Setting(1.0)
     phase = Setting(0.0)
 
@@ -151,13 +158,17 @@ class OWGenericWavefront2D(WofryWidget):
         box_amplitude = oasysgui.widgetBox(self.tab_sou, "Amplitude Settings", addSpace=False, orientation="vertical")
 
         gui.comboBox(box_amplitude, self, "kind_of_wave", label="Kind of Wave", labelWidth=350,
-                     items=["Plane", "Spherical"],
+                     items=["Plane", "Spherical", "Gaussian", "Gaussian Shell Model"],
                      callback=self.set_KindOfWave,
                      sendSelectedValue=False, orientation="horizontal")
 
 
-        self.plane_box = oasysgui.widgetBox(box_amplitude, "", addSpace=False, orientation="vertical", height=90)
-        self.spherical_box = oasysgui.widgetBox(box_amplitude, "", addSpace=False, orientation="vertical", height=90)
+        self.plane_box = oasysgui.widgetBox(box_amplitude, "", addSpace=False, orientation="vertical", height=150)
+        self.spherical_box = oasysgui.widgetBox(box_amplitude, "", addSpace=False, orientation="vertical", height=150)
+        self.gaussian_box = oasysgui.widgetBox(box_amplitude, "", addSpace=False, orientation="vertical", height=150)
+        self.gsm_box = oasysgui.widgetBox(box_amplitude, "", addSpace=False, orientation="vertical", height=150)
+
+        # --- PLANE
 
         gui.comboBox(self.plane_box, self, "initialize_amplitude", label="Amplitude Initialization", labelWidth=350,
                      items=["Complex", "Real"],
@@ -184,6 +195,7 @@ class OWGenericWavefront2D(WofryWidget):
 
         self.set_Amplitude()
 
+        # ------ SPHERIC
 
         oasysgui.lineEdit(self.spherical_box, self, "radius", "Radius [m]",
                           labelWidth=300, valueType=float, orientation="horizontal")
@@ -197,6 +209,34 @@ class OWGenericWavefront2D(WofryWidget):
                           valueType=float, orientation="horizontal")
 
         oasysgui.widgetLabel(amplitude_box_3, "i", labelWidth=15)
+
+        # ---- GAUSSIAN
+
+        oasysgui.lineEdit(self.gaussian_box, self, "gaussian_sigma_h", "Sigma (H)",
+                          labelWidth=250, valueType=float, orientation="horizontal")
+
+        oasysgui.lineEdit(self.gaussian_box, self, "gaussian_sigma_v", "Sigma (V)",
+                          labelWidth=250, valueType=float, orientation="horizontal")
+
+        oasysgui.lineEdit(self.gaussian_box, self, "gaussian_amplitude", "Amplitude of the Spectral Density",
+                          labelWidth=250, valueType=float, orientation="horizontal")
+
+        # ---- GAUSSIAN SHELL MODEL
+
+        oasysgui.lineEdit(self.gsm_box, self, "gaussian_sigma_h", "Sigma (H)",
+                          labelWidth=250, valueType=float, orientation="horizontal")
+
+        oasysgui.lineEdit(self.gsm_box, self, "gaussian_sigma_v", "Sigma (V)",
+                          labelWidth=250, valueType=float, orientation="horizontal")
+
+        oasysgui.lineEdit(self.gsm_box, self, "gaussian_amplitude", "Amplitude of the Spectral Density",
+                          labelWidth=250, valueType=float, orientation="horizontal")
+
+        oasysgui.lineEdit(self.gsm_box, self, "gaussian_mode_h", "Mode (H)",
+                          labelWidth=250, valueType=int, orientation="horizontal")
+
+        oasysgui.lineEdit(self.gsm_box, self, "gaussian_mode_v", "Mode (V)",
+                          labelWidth=250, valueType=int, orientation="horizontal")
 
         self.set_KindOfWave()
 
@@ -216,6 +256,8 @@ class OWGenericWavefront2D(WofryWidget):
     def set_KindOfWave(self):
         self.plane_box.setVisible(self.kind_of_wave == 0)
         self.spherical_box.setVisible(self.kind_of_wave == 1)
+        self.gaussian_box.setVisible(self.kind_of_wave == 2)
+        self.gsm_box.setVisible(self.kind_of_wave == 3)
 
     def initializeTabs(self):
         size = len(self.tab)
@@ -255,6 +297,14 @@ class OWGenericWavefront2D(WofryWidget):
 
         if self.kind_of_wave == 1:
             congruence.checkStrictlyPositiveNumber(self.radius, "Radius")
+        elif self.kind_of_wave > 1:
+            congruence.checkStrictlyPositiveNumber(self.gaussian_sigma_h, "Sigma (H)")
+            congruence.checkStrictlyPositiveNumber(self.gaussian_sigma_v, "Sigma (V)")
+            congruence.checkStrictlyPositiveNumber(self.gaussian_amplitude, "Amplitude of the Spectral Density")
+
+            if self.kind_of_wave == 3:
+                congruence.checkPositiveNumber(self.gaussian_mode_h, "Mode (H)")
+                congruence.checkPositiveNumber(self.gaussian_mode_v, "Mode (V)")
 
     def generate(self):
         try:
@@ -277,14 +327,22 @@ class OWGenericWavefront2D(WofryWidget):
                 self.wavefront2D.set_wavelength(self.wavelength)
 
             if self.kind_of_wave == 0: #plane
-
                 if self.initialize_amplitude == 0:
                     self.wavefront2D.set_plane_wave_from_complex_amplitude(complex_amplitude=complex(self.complex_amplitude_re, self.complex_amplitude_im))
                 else:
                     self.wavefront2D.set_plane_wave_from_amplitude_and_phase(amplitude=self.amplitude, phase=self.phase)
-
-            else:
+            elif self.kind_of_wave == 1: # spheric
                 self.wavefront2D.set_spherical_wave(radius=self.radius, complex_amplitude=complex(self.complex_amplitude_re, self.complex_amplitude_im))
+            elif self.kind_of_wave == 2: # gaussian
+                self.wavefront2D.set_gaussian(sigma_x=self.gaussian_sigma_h,
+                                              sigma_y=self.gaussian_sigma_v,
+                                              amplitude=self.gaussian_amplitude)
+            elif self.kind_of_wave == 3: # g.s.m.
+                self.wavefront2D.set_gaussian_hermite_mode(sigma_x=self.gaussian_sigma_h,
+                                                           sigma_y=self.gaussian_sigma_v,
+                                                           amplitude=self.gaussian_amplitude,
+                                                           nx=self.gaussian_mode_h,
+                                                           ny=self.gaussian_mode_v)
 
             self.initializeTabs()
             self.plot_results()
