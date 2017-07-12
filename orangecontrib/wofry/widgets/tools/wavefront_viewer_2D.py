@@ -61,7 +61,7 @@ class WavefrontViewer2D(WofryWidget):
         for index in indexes:
             self.tabs.removeTab(size-1-index)
 
-        titles = ["Wavefront 2D"]
+        titles = ["Wavefront 2D Intensity", "Wavefront 2D Phase"]
         self.tab = []
         self.plot_canvas = []
 
@@ -90,17 +90,26 @@ class WavefrontViewer2D(WofryWidget):
 
             self.progressBarSet(progressBarValue)
 
-            titles = ["Wavefront 2D Intensity"]
+            titles = ["Wavefront 2D Intensity", "Wavefront 2D Phase"]
 
             self.plot_data2D(data2D=self.wavefront2D.get_intensity(),
                              dataX=self.wavefront2D.get_coordinate_x(),
                              dataY=self.wavefront2D.get_coordinate_y(),
-                             progressBarValue=progressBarValue+25,
+                             progressBarValue=progressBarValue+10,
                              tabs_canvas_index=0,
                              plot_canvas_index=0,
                              title=titles[0],
                              xtitle="Horizontal Coordinate",
                              ytitle="Vertical Coordinate")
 
+            self.plot_data2D(data2D=self.wavefront2D.get_phase(),
+                             dataX=self.wavefront2D.get_coordinate_x(),
+                             dataY=self.wavefront2D.get_coordinate_y(),
+                             progressBarValue=progressBarValue+10,
+                             tabs_canvas_index=1,
+                             plot_canvas_index=1,
+                             title=titles[1],
+                             xtitle="Horizontal Coordinate",
+                             ytitle="Vertical Coordinate")
 
             self.progressBarFinished()

@@ -61,7 +61,7 @@ class WavefrontViewer1D(WofryWidget):
         for index in indexes:
             self.tabs.removeTab(size-1-index)
 
-        titles = ["Wavefront 1D"]
+        titles = ["Wavefront 1D Intensity", "Wavefront 1D Phase"]
         self.tab = []
         self.plot_canvas = []
 
@@ -90,15 +90,24 @@ class WavefrontViewer1D(WofryWidget):
 
             self.progressBarSet(progressBarValue)
 
-            titles = ["Wavefront 1D Intensity"]
+            titles = ["Wavefront 1D Intensity", "Wavefront 1D Phase"]
 
             self.plot_data1D(x=self.wavefront1D.get_abscissas(),
                              y=self.wavefront1D.get_intensity(),
-                             progressBarValue=progressBarValue + 25,
+                             progressBarValue=progressBarValue + 10,
                              tabs_canvas_index=0,
                              plot_canvas_index=0,
                              title=titles[0],
                              xtitle="Spatial Coordinate",
                              ytitle="Intensity")
+
+            self.plot_data1D(x=self.wavefront1D.get_abscissas(),
+                             y=self.wavefront1D.get_phase(),
+                             progressBarValue=progressBarValue + 10,
+                             tabs_canvas_index=1,
+                             plot_canvas_index=1,
+                             title=titles[0],
+                             xtitle="Spatial Coordinate",
+                             ytitle="Phase (rad)")
 
             self.progressBarFinished()
