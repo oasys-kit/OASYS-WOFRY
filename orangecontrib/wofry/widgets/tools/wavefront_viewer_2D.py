@@ -81,9 +81,14 @@ class WavefrontViewer2D(WofryWidget):
             self.refresh()
 
     def refresh(self):
-        if not self.wavefront2D is None:
-            self.initializeTabs()
-            self.plot_results()
+        self.progressBarInit()
+
+        try:
+            if not self.wavefront2D is None:
+                self.initializeTabs()
+                self.plot_results()
+        except Exception as exception:
+            QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)
 
     def do_plot_results(self, progressBarValue):
         if not self.wavefront2D is None:

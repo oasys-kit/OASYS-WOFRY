@@ -9,7 +9,6 @@ from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 
 from wofry.propagator.wavefront1D.generic_wavefront import GenericWavefront1D
-from wofry.propagator.wavefront2D.generic_wavefront import GenericWavefront2D
 
 from orangecontrib.wofry.widgets.gui.ow_wofry_widget import WofryWidget
 
@@ -81,9 +80,15 @@ class WavefrontViewer1D(WofryWidget):
             self.refresh()
 
     def refresh(self):
-        if not self.wavefront1D is None:
-            self.initializeTabs()
-            self.plot_results()
+        self.progressBarInit()
+
+        try:
+            if not self.wavefront1D is None:
+                self.initializeTabs()
+                self.plot_results()
+        except Exception as exception:
+            QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)
+
 
     def do_plot_results(self, progressBarValue):
         if not self.wavefront1D is None:
