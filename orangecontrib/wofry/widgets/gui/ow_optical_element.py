@@ -100,8 +100,6 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
 
         gui.separator(self.controlArea)
 
-
-
         self.tabs_setting = oasysgui.tabWidget(self.controlArea)
         self.tabs_setting.setFixedHeight(self.TABS_AREA_HEIGHT)
         self.tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-10)
