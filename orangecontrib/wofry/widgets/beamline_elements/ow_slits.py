@@ -10,7 +10,7 @@ from orangecontrib.wofry.widgets.gui.ow_optical_element import OWWOOpticalElemen
 from syned.beamline.optical_elements.absorbers.slit import Slit
 from syned.beamline.shape import Rectangle, Ellipse
 
-from wofry.elements.optical_elements.absorbers.slit import WOSlit
+from wofry.beamline.optical_elements.absorbers.slit import WOSlit
 
 class OWWOSlit(OWWOOpticalElement):
 

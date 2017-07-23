@@ -4,7 +4,7 @@ from oasys.widgets import congruence
 
 from syned.beamline.optical_elements.ideal_elements.lens import IdealLens
 
-from wofry.elements.optical_elements.ideal_elements.lens import WOIdealLens
+from wofry.beamline.optical_elements.ideal_elements.lens import WOIdealLens
 
 from orangecontrib.wofry.widgets.gui.ow_optical_element import OWWOOpticalElement
 
