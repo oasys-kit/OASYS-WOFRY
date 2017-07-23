@@ -1,7 +1,8 @@
 import numpy
 
 from PyQt5.QtGui import QPalette, QColor, QFont
-from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtWidgets import QMessageBox, QApplication
+from PyQt5.QtCore import QRect
 
 from orangewidget import gui
 from orangewidget import widget
@@ -103,7 +104,8 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
 
         self.tabs_setting = oasysgui.tabWidget(self.controlArea)
         self.tabs_setting.setFixedHeight(self.TABS_AREA_HEIGHT)
-        self.tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-10)
+        self.tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
+
 
         self.tab_bas = oasysgui.createTabPage(self.tabs_setting, "O.E. Setting")
         self.tab_pro = oasysgui.createTabPage(self.tabs_setting, "Propagation Setting")
@@ -283,8 +285,8 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
                 self.oe_name = beamline_element._optical_element._name
                 self.p = beamline_element._coordinates._p
                 self.q = beamline_element._coordinates._q
-                self.angle_azimuthal = beamline_element._coordinates._angle_azimuthal
-                self.angle_radial = beamline_element._coordinates._angle_radial
+                self.angle_azimuthal = round(numpy.degrees(beamline_element._coordinates._angle_azimuthal), 6)
+                self.angle_radial = round(numpy.degrees(beamline_element._coordinates._angle_radial), 6)
 
                 self.receive_specific_syned_data(beamline_element._optical_element)
             else:
@@ -389,24 +391,27 @@ class OWWOOpticalElementWithBoundaryShape(OWWOOpticalElement):
 
     def receive_specific_syned_data(self, optical_element):
         if not optical_element is None:
-            self.check_syned_instance()
+            self.check_syned_instance(optical_element)
 
             if not optical_element._boundary_shape is None:
+
+                left, right, bottom, top = optical_element._boundary_shape.get_boundaries()
+
+                self.horizontal_shift = round(((right + left) / 2), 6)
+                self.vertical_shift = round(((top + bottom) / 2), 6)
+
                 if isinstance(optical_element._boundary_shape, Rectangle):
                     self.shape = 0
 
-                    self.width  = numpy.abs(optical_element._boundary_shape._x_right - optical_element._boundary_shape._x_left)
-                    self.height = numpy.abs(optical_element._boundary_shape._y_top - optical_element._boundary_shape._y_bottom)
-                    self.horizontal_shift = optical_element._boundary_shape._x_left + 0.5*self.width
-                    self.vertical_shift = optical_element._boundary_shape._y_bottom + 0.5*self.height
-
+                    self.width = round((numpy.abs(right - left)), 6)
+                    self.height = round((numpy.abs(top - bottom)), 6)
                 if isinstance(optical_element._boundary_shape, Ellipse):
                     self.shape = 2
 
-                    self.width  = numpy.abs(optical_element._boundary_shape._min_ax_right - optical_element._boundary_shape._min_ax_left)
-                    self.height = numpy.abs(optical_element._boundary_shape._maj_ax_top - optical_element._boundary_shape._maj_ax_bottom)
-                    self.horizontal_shift = optical_element._boundary_shape._min_ax_left + 0.5*self.width
-                    self.vertical_shift = optical_element._boundary_shape._maj_ax_bottom + 0.5*self.height
+                    self.min_ax = round((numpy.abs(right - left)), 6)
+                    self.maj_ax = round((numpy.abs(top - bottom)), 6)
+
+                self.set_Shape()
         else:
             raise Exception("Syned Data not correct: Empty Optical Element")
 

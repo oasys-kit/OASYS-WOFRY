@@ -40,6 +40,7 @@ class WofryWidget(AutomaticWidget):
         self.setMaximumWidth(self.geometry().width())
 
         self.controlArea.setFixedWidth(self.CONTROL_AREA_WIDTH)
+
         self.main_tabs = oasysgui.tabWidget(self.mainArea)
         plot_tab = oasysgui.createTabPage(self.main_tabs, "Results")
         out_tab = oasysgui.createTabPage(self.main_tabs, "Output")
