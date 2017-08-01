@@ -457,7 +457,7 @@ class OWWOOpticalElementWithSurfaceShape(OWWOOpticalElementWithBoundaryShape):
         self.surface_shape_box = oasysgui.widgetBox(tab_oe, "Surface Shape", addSpace=True, orientation="vertical", height=190)
 
         gui.comboBox(self.surface_shape_box, self, "surface_shape", label="Surface Shape", labelWidth=350,
-                     items=["Plane", "Sphere", "Ellipsoid", "Paraboloid", "Hyperboloid", "Torus"],
+                     items=["Plane", "Sphere", "Ellipsoid", "Paraboloid", "Hyperboloid", "Toroidal"],
                      callback=self.set_SurfaceParameters,
                      sendSelectedValue=False, orientation="horizontal")
 
@@ -730,10 +730,10 @@ class OWWOOpticalElementWithSurfaceShape(OWWOOpticalElementWithBoundaryShape):
         # TORUS --------------------------
         elif self.surface_shape == 5:
             if self.calculate_torus_parameter == 0:
-                surface_shape = Torus(min_radius=self.min_radius_surface,
+                surface_shape = Toroidal(min_radius=self.min_radius_surface,
                                       maj_radius=self.maj_radius_surface)
             elif self.calculate_torus_parameter == 1:
-                surface_shape = Torus()
+                surface_shape = Toroidal()
 
                 surface_shape.initialize_from_p_q(self.p_surface, self.q_surface, numpy.radians(90-self.angle_radial))
 
