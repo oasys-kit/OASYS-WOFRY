@@ -159,10 +159,10 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
         raise NotImplementedError()
 
     def check_data(self):
-        congruence.checkPositiveNumber(self.p, "Distance from previous Continuation Plane")
-        congruence.checkPositiveNumber(self.q, "Distance to next Continuation Plane")
-        congruence.checkPositiveAngle(self.angle_radial, "Incident Angle (to normal)")
-        congruence.checkPositiveAngle(self.angle_azimuthal, "Rotation along Beam Axis")
+        congruence.checkNumber(self.p, "Distance from previous Continuation Plane")
+        congruence.checkNumber(self.q, "Distance to next Continuation Plane")
+        congruence.checkAngle(self.angle_radial, "Incident Angle (to normal)")
+        congruence.checkAngle(self.angle_azimuthal, "Rotation along Beam Axis")
 
     def propagate_wavefront(self):
         try:

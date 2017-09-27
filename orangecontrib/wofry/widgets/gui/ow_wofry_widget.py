@@ -180,7 +180,7 @@ class WofryWidget(AutomaticWidget):
         self.plot_canvas[plot_canvas_index].setKeepDataAspectRatio(False)
 
         self.plot_canvas[plot_canvas_index].addImage(numpy.array(data_to_plot),
-                                                     legend="zio billy",
+                                                     legend="None",
                                                      scale=scale,
                                                      origin=origin,
                                                      colormap=colormap,
