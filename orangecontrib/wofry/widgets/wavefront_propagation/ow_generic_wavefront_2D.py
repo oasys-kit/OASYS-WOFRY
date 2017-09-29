@@ -1,3 +1,5 @@
+import numpy
+
 from PyQt5.QtGui import QPalette, QColor, QFont
 from PyQt5.QtWidgets import QMessageBox
 from orangewidget import gui
@@ -296,7 +298,7 @@ class OWGenericWavefront2D(WofryWidget):
             congruence.checkStrictlyPositiveNumber(self.steps_step_v, "Step (V)")
 
         if self.kind_of_wave == 1:
-            congruence.checkStrictlyPositiveNumber(self.radius, "Radius")
+            congruence.checkStrictlyPositiveNumber(numpy.abs(self.radius), "Radius")
         elif self.kind_of_wave > 1:
             congruence.checkStrictlyPositiveNumber(self.gaussian_sigma_h, "Sigma (H)")
             congruence.checkStrictlyPositiveNumber(self.gaussian_sigma_v, "Sigma (V)")
