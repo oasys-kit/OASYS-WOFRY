@@ -33,19 +33,19 @@ class OWGenericWavefront1D(WofryWidget):
     wavelength = Setting(1e-10)
     number_of_points = Setting(1000)
     initialize_from = Setting(0)
-    range_from = Setting(0.0)
-    range_to = Setting(0.0)
-    steps_start = Setting(0.0)
-    steps_step = Setting(0.0)
+    range_from = Setting(-0.0005)
+    range_to = Setting(0.0005)
+    steps_start = Setting(-0.0005)
+    steps_step = Setting(1e-6)
 
     kind_of_wave = Setting(0)
 
     initialize_amplitude = Setting(0)
     complex_amplitude_re = Setting(1.0)
     complex_amplitude_im = Setting(0.0)
-    radius = Setting(0.0)
+    radius = Setting(1.0)
 
-    gaussian_sigma = Setting(0.0)
+    gaussian_sigma = Setting(0.001)
     gaussian_amplitude = Setting(1.0)
     gaussian_mode = Setting(0)
 

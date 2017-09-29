@@ -36,28 +36,27 @@ class OWGenericWavefront2D(WofryWidget):
 
     initialize_from = Setting(0)
 
-    range_from_h = Setting(0.0)
-    range_to_h = Setting(0.0)
-    range_from_v = Setting(0.0)
-    range_to_v = Setting(0.0)
-    steps_start_h = Setting(0.0)
-    steps_step_h = Setting(0.0)
-    steps_start_v = Setting(0.0)
-    steps_step_v = Setting(0.0)
+    range_from_h  = Setting(-0.0005)
+    range_to_h    = Setting(0.0005)
+    steps_start_h = Setting(-0.0005)
+    steps_step_h  = Setting(1e-6)
+    range_from_v  = Setting(-0.0005)
+    range_to_v    = Setting(0.0005)
+    steps_start_v = Setting(-0.0005)
+    steps_step_v  = Setting(1e-6)
 
     kind_of_wave = Setting(0)
 
     initialize_amplitude = Setting(0)
     complex_amplitude_re = Setting(1.0)
     complex_amplitude_im = Setting(0.0)
-    radius = Setting(0.0)
+    radius = Setting(1.0)
 
-    gaussian_sigma_h = Setting(0.0)
-    gaussian_sigma_v = Setting(0.0)
+    gaussian_sigma_h = Setting(0.001)
+    gaussian_sigma_v = Setting(0.001)
     gaussian_amplitude = Setting(1.0)
     gaussian_mode_h = Setting(0)
     gaussian_mode_v = Setting(0)
-
 
     amplitude = Setting(1.0)
     phase = Setting(0.0)
