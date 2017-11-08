@@ -176,7 +176,7 @@ class WofryWidget(AutomaticWidget):
         #silx 0.4.0
         self.plot_canvas[plot_canvas_index].getMaskAction().setVisible(False)
         self.plot_canvas[plot_canvas_index].getRoiAction().setVisible(False)
-        self.plot_canvas[plot_canvas_index].getColormapAction().setVisible(False)
+        self.plot_canvas[plot_canvas_index].getColormapAction().setVisible(True)
         self.plot_canvas[plot_canvas_index].setKeepDataAspectRatio(False)
 
         self.plot_canvas[plot_canvas_index].addImage(numpy.array(data_to_plot),
@@ -186,13 +186,16 @@ class WofryWidget(AutomaticWidget):
                                                      colormap=colormap,
                                                      replace=True)
 
-        self.plot_canvas[plot_canvas_index].setActiveImage("zio billy")
 
-        from matplotlib.image import AxesImage
-        image = AxesImage(self.plot_canvas[plot_canvas_index]._backend.ax)
-        image.set_data(numpy.array(data_to_plot))
 
-        self.plot_canvas[plot_canvas_index]._backend.fig.colorbar(image, ax=self.plot_canvas[plot_canvas_index]._backend.ax)
+        # srio - color bar included in silx 0.6
+        # self.plot_canvas[plot_canvas_index].setActiveImage("zio billy")
+
+        # from matplotlib.image import AxesImage
+        # image = AxesImage(self.plot_canvas[plot_canvas_index]._backend.ax)
+        # image.set_data(numpy.array(data_to_plot))
+        #
+        # self.plot_canvas[plot_canvas_index]._backend.fig.colorbar(image, ax=self.plot_canvas[plot_canvas_index]._backend.ax)
 
         self.plot_canvas[plot_canvas_index].setGraphXLabel(xtitle)
         self.plot_canvas[plot_canvas_index].setGraphYLabel(ytitle)
