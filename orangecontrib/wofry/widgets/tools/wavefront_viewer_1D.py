@@ -26,6 +26,7 @@ class WavefrontViewer1D(WofryWidget):
     inputs = [("GenericWavefront1D", GenericWavefront1D, "set_input")]
 
     wavefront1D = None
+    phase_unwrap = Setting(0)
 
     def __init__(self):
         super().__init__(is_automatic=False, show_view_options=False)
@@ -43,6 +44,8 @@ class WavefrontViewer1D(WofryWidget):
         button.setPalette(palette) # assign new palette
         button.setFixedHeight(45)
 
+
+
         gui.separator(self.controlArea)
 
         self.controlArea.setFixedWidth(self.CONTROL_AREA_WIDTH)
@@ -52,6 +55,11 @@ class WavefrontViewer1D(WofryWidget):
         tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
 
         self.tab_sou = oasysgui.createTabPage(tabs_setting, "Wavefront Viewer Settings")
+
+        gui.comboBox(self.tab_sou, self, "phase_unwrap",
+                    label="Phase unwrap ", addSpace=False,
+                    items=['No','Yes'],
+                    valueType=int, orientation="horizontal", callback=self.refresh)
 
     def initializeTabs(self):
         size = len(self.tab)
@@ -97,22 +105,43 @@ class WavefrontViewer1D(WofryWidget):
 
             titles = ["Wavefront 1D Intensity", "Wavefront 1D Phase"]
 
-            self.plot_data1D(x=self.wavefront1D.get_abscissas(),
+            self.plot_data1D(x=1e6*self.wavefront1D.get_abscissas(),
                              y=self.wavefront1D.get_intensity(),
                              progressBarValue=progressBarValue + 10,
                              tabs_canvas_index=0,
                              plot_canvas_index=0,
                              title=titles[0],
-                             xtitle="Spatial Coordinate",
+                             xtitle="Spatial Coordinate [$\mu$m]",
                              ytitle="Intensity")
 
-            self.plot_data1D(x=self.wavefront1D.get_abscissas(),
-                             y=self.wavefront1D.get_phase(),
+            self.plot_data1D(x=1e6*self.wavefront1D.get_abscissas(),
+                             y=self.wavefront1D.get_phase(from_minimum_intensity=0.1,unwrap=self.phase_unwrap),
                              progressBarValue=progressBarValue + 10,
                              tabs_canvas_index=1,
                              plot_canvas_index=1,
                              title=titles[0],
-                             xtitle="Spatial Coordinate",
+                             xtitle="Spatial Coordinate [$\mu$m]",
                              ytitle="Phase (rad)")
 
             self.progressBarFinished()
+
+
+if __name__ == '__main__':
+
+    from PyQt5.QtWidgets import QApplication
+
+    app = QApplication([])
+    ow = WavefrontViewer1D()
+
+
+    # filename_np = "/users/srio/COMSYLD/comsyl/comsyl/calculations/septest_cm_new_u18_2m_1h_s2.5.npz"
+    # af = CompactAFReader.initialize_from_file(filename_np)
+    # wf = GenericWavefront2D.initialize_wavefront_from_arrays(af.x_coordinates(),
+    #                                                          af.y_coordinates(),
+    #                                                          af.mode(0))
+    # wf.set_photon_energy(af.photon_energy())
+
+    # ow.set_input(wf)
+    ow.show()
+    app.exec_()
+    ow.saveSettings()

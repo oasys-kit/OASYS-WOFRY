@@ -126,6 +126,32 @@ class WofryWidget(AutomaticWidget):
             self.plot_canvas[plot_canvas_index].setGraphXLabel(xtitle)
             self.plot_canvas[plot_canvas_index].setGraphYLabel(ytitle)
 
+
+            # ALLOW FIT BUTTON HERE
+            self.plot_canvas[plot_canvas_index].fitAction.setVisible(True)
+
+            # overwrite FWHM and peak values
+
+            t = numpy.where(y>=max(y)*0.5)
+            x_left,x_right =  x[t[0][0]], x[t[0][-1]]
+
+            self.plot_canvas[plot_canvas_index].addMarker(x_left, 0.5*y.max(), legend="G1",
+                                                          text="FWHM=%5.2f"%(numpy.abs(x_right-x_left)),
+                                                          color="pink",selectable=False, draggable=False,
+                                                          symbol="+", constraint=None)
+            self.plot_canvas[plot_canvas_index].addMarker(x_right, 0.5*y.max(), legend="G2", text=None, color="pink",
+                                                          selectable=False, draggable=False, symbol="+", constraint=None)
+
+            # PEAK
+            # index_ymax = numpy.argmax(y)
+            # self.plot_canvas[plot_canvas_index].addMarker(x[index_ymax], y[index_ymax], legend="G3",
+            #                                               text=None, color="pink",
+            #                                               selectable=False, draggable=False, symbol="+", constraint=None)
+            # self.plot_canvas[plot_canvas_index].addMarker(x[index_ymax], y[index_ymax]-0.05, legend="G4",
+            #                                               text="Peak=%5.2f"%(y[index_ymax]), color="pink",
+            #                                               selectable=False, draggable=False, symbol=None, constraint=None)
+
+            #
             self.tab[tabs_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
 
         WofryWidget.plot_histo(self.plot_canvas[plot_canvas_index], x, y, title, xtitle, ytitle, color, replace)
