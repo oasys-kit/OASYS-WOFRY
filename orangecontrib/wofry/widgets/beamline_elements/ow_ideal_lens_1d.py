@@ -14,7 +14,7 @@ class OWWOIdealLens1D(OWWOOpticalElement1D):
     name = "Ideal Lens 1D"
     description = "Wofry: Ideal Lens 1D"
     icon = "icons/ideallens_1d.png"
-    priority = 5
+    priority = 6
 
     focal_x = Setting(0.0)
 
