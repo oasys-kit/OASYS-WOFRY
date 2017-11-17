@@ -21,7 +21,7 @@ from wofry.propagator.wavefront1D.generic_wavefront import GenericWavefront1D
 from wofry.propagator.propagators1D.fresnel import Fresnel1D, FresnelConvolution1D
 from wofry.propagator.propagators1D.fraunhofer import Fraunhofer1D
 from wofry.propagator.propagators1D.integral import Integral1D
-from wofry.propagator.propagators1D.fresnel_zoom_xy import FresnelZoomXY1D
+from wofry.propagator.propagators1D.fresnel_zoom import FresnelZoom1D
 
 from orangecontrib.wofry.widgets.gui.ow_wofry_widget import WofryWidget
 
@@ -32,7 +32,7 @@ def initialize_default_propagator_1D():
     propagator.add_propagator(Fresnel1D())
     propagator.add_propagator(FresnelConvolution1D())
     propagator.add_propagator(Integral1D())
-    propagator.add_propagator(FresnelZoomXY1D())
+    propagator.add_propagator(FresnelZoom1D())
 
 try:
     initialize_default_propagator_1D()
@@ -235,7 +235,7 @@ class OWWOOpticalElement1D(WofryWidget, WidgetDecorator):
         elif self.propagator == 3:
             return Integral1D.HANDLER_NAME
         elif self.propagator == 4:
-            return FresnelZoomXY1D.HANDLER_NAME
+            return FresnelZoom1D.HANDLER_NAME
 
     def set_additional_parameters(self, propagation_parameters):
         if self.propagator <= 2:
