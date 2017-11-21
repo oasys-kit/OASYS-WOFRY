@@ -159,8 +159,6 @@ class GenericWavefrontViewer2D(WofryWidget):
         self.do_plot_results(10)  # TODO: check progressBar...
 
 
-
-
     def do_plot_results(self, progressBarValue):
 
         if self.accumulated_data is None:
@@ -182,7 +180,7 @@ class GenericWavefrontViewer2D(WofryWidget):
                                  plot_canvas_index=0,
                                  title="Wavefront 2D Intensity",
                                  xtitle="Horizontal [$\mu$m] ( %d pixels)"%(self.accumulated_data["x"].size),
-                                 ytitle="Vertical [$\mu$m] (%d pixels)"%(self.accumulated_data["x"].size))
+                                 ytitle="Vertical [$\mu$m] (%d pixels)"%(self.accumulated_data["y"].size))
 
             if self.plot_phase:
                 tabs_canvas_index += 1
