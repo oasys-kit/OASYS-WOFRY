@@ -1,5 +1,7 @@
 __author__ = 'labx'
 
+import numpy
+
 from PyQt5.QtGui import QPalette, QColor, QFont
 from PyQt5.QtWidgets import QMessageBox
 from orangewidget import gui
@@ -27,6 +29,7 @@ class WavefrontViewer1D(WofryWidget):
 
     wavefront1D = None
     phase_unwrap = Setting(0)
+    titles = ["Wavefront 1D Intensity", "Wavefront 1D Phase","Wavefront Real(Amplitude)","Wavefront Imag(Amplitude)"]
 
     def __init__(self):
         super().__init__(is_automatic=False, show_view_options=False)
@@ -68,12 +71,11 @@ class WavefrontViewer1D(WofryWidget):
         for index in indexes:
             self.tabs.removeTab(size-1-index)
 
-        titles = ["Wavefront 1D Intensity", "Wavefront 1D Phase"]
         self.tab = []
         self.plot_canvas = []
 
-        for index in range(0, len(titles)):
-            self.tab.append(gui.createTabPage(self.tabs, titles[index]))
+        for index in range(0, len(self.titles)):
+            self.tab.append(gui.createTabPage(self.tabs, self.titles[index]))
             self.plot_canvas.append(None)
 
         for tab in self.tab:
@@ -92,8 +94,10 @@ class WavefrontViewer1D(WofryWidget):
 
         try:
             if not self.wavefront1D is None:
+                current_index = self.tabs.currentIndex()
                 self.initializeTabs()
                 self.plot_results()
+                self.tabs.setCurrentIndex(current_index)
         except Exception as exception:
             QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)
 
@@ -103,14 +107,12 @@ class WavefrontViewer1D(WofryWidget):
 
             self.progressBarSet(progressBarValue)
 
-            titles = ["Wavefront 1D Intensity", "Wavefront 1D Phase"]
-
             self.plot_data1D(x=1e6*self.wavefront1D.get_abscissas(),
                              y=self.wavefront1D.get_intensity(),
                              progressBarValue=progressBarValue + 10,
                              tabs_canvas_index=0,
                              plot_canvas_index=0,
-                             title=titles[0],
+                             title=self.titles[0],
                              xtitle="Spatial Coordinate [$\mu$m]",
                              ytitle="Intensity")
 
@@ -119,9 +121,28 @@ class WavefrontViewer1D(WofryWidget):
                              progressBarValue=progressBarValue + 10,
                              tabs_canvas_index=1,
                              plot_canvas_index=1,
-                             title=titles[0],
+                             title=self.titles[1],
                              xtitle="Spatial Coordinate [$\mu$m]",
                              ytitle="Phase (rad)")
+
+            self.plot_data1D(x=1e6*self.wavefront1D.get_abscissas(),
+                             y=numpy.real(self.wavefront1D.get_complex_amplitude()),
+                             progressBarValue=progressBarValue + 10,
+                             tabs_canvas_index=2,
+                             plot_canvas_index=2,
+                             title=self.titles[2],
+                             xtitle="Spatial Coordinate [$\mu$m]",
+                             ytitle="Real(Amplitude)")
+
+            self.plot_data1D(x=1e6*self.wavefront1D.get_abscissas(),
+                             y=numpy.imag(self.wavefront1D.get_complex_amplitude()),
+                             progressBarValue=progressBarValue + 10,
+                             tabs_canvas_index=3,
+                             plot_canvas_index=3,
+                             title=self.titles[3],
+                             xtitle="Spatial Coordinate [$\mu$m]",
+                             ytitle="Imag(Amplitude)")
+
 
             self.progressBarFinished()
 

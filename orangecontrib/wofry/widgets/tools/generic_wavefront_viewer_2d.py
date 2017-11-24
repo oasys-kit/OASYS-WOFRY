@@ -85,8 +85,6 @@ class GenericWavefrontViewer2D(WofryWidget):
         for index in indexes:
             self.tabs.removeTab(size-1-index)
 
-
-
         titles = []
         if self.plot_intensity:
             titles.append("Intensity")
@@ -154,10 +152,10 @@ class GenericWavefrontViewer2D(WofryWidget):
             self.do_plot_results(10) #refresh()
 
     def refresh(self):
-
+        current_index = self.tabs.currentIndex()
         self.initializeTabs()
         self.do_plot_results(10)  # TODO: check progressBar...
-
+        self.tabs.setCurrentIndex(current_index)
 
     def do_plot_results(self, progressBarValue):
 

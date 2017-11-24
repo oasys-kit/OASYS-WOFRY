@@ -66,14 +66,12 @@ class OWWOOpticalElement1D(WofryWidget, WidgetDecorator):
     input_wavefront = None
     wavefront_to_plot = None
 
-    propagators_list = ["Fresnel", "Fresnel (Convolution)", "Fraunhofer", "Integral", "Fresnel Zoom XY"]
+    propagators_list = ["Fresnel", "Fresnel (Convolution)", "Fraunhofer", "Integral", "Fresnel Zoom"]
+    plot_titles = ["Wavefront 1D Intensity", "Wavefront 1D Phase","Wavefront Real(Amplitude)","Wavefront Imag(Amplitude)"]
 
     propagator = Setting(0)
-    shift_half_pixel = Setting(1)
-
-    shuffle_interval = Setting(0)
-    calculate_grid_only = Setting(1)
-    magnification_x = Setting(1.0)
+    magnification_x = Setting(1.0) # For Fresnel Zoom & Integral
+    magnification_N = Setting(1.0) # For Integral
 
     def __init__(self):
         super().__init__()
@@ -129,37 +127,27 @@ class OWWOOpticalElement1D(WofryWidget, WidgetDecorator):
                      callback=self.set_Propagator,
                      sendSelectedValue=False, orientation="horizontal")
 
+        # Fresnel
         self.fresnel_box = oasysgui.widgetBox(self.tab_pro, "", addSpace=False, orientation="vertical", height=90)
 
-        gui.comboBox(self.fresnel_box, self, "shift_half_pixel", label="Shift Half Pixel", labelWidth=260,
-                     items=["No", "Yes"],
-                     sendSelectedValue=False, orientation="horizontal")
-
+        # Fraunhoffer
         self.fraunhofer_box = oasysgui.widgetBox(self.tab_pro, "", addSpace=False, orientation="vertical", height=90)
 
-        gui.comboBox(self.fraunhofer_box, self, "shift_half_pixel", label="Shift Half Pixel", labelWidth=260,
-                     items=["No", "Yes"],
-                     sendSelectedValue=False, orientation="horizontal")
-
+        # Integral
         self.integral_box = oasysgui.widgetBox(self.tab_pro, "", addSpace=False, orientation="vertical", height=90)
 
 
-        oasysgui.lineEdit(self.integral_box, self, "shuffle_interval", "Shuffle Interval (0=no shift) [m]", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.integral_box, self, "magnification_x", "Magnification Factor for interval",
+                          labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.integral_box, self, "magnification_N", "Magnification Factor for N points",
+                          labelWidth=260, valueType=float, orientation="horizontal")
 
-        gui.comboBox(self.integral_box, self, "calculate_grid_only", label="Calculate Grid Only", labelWidth=260,
-                     items=["No", "Yes"],
-                     sendSelectedValue=False, orientation="horizontal")
-
-
-        #new zoom
+        # Fresnel zoom
         self.zoom_box = oasysgui.widgetBox(self.tab_pro, "", addSpace=False, orientation="vertical", height=90)
 
-        gui.comboBox(self.zoom_box, self, "shift_half_pixel", label="Shift Half Pixel", labelWidth=260,
-                     items=["No", "Yes"],
-                     sendSelectedValue=False, orientation="horizontal")
-
-        oasysgui.lineEdit(self.zoom_box, self, "magnification_x", "Magnification X",
+        oasysgui.lineEdit(self.zoom_box, self, "magnification_x", "Magnification Factor for interval",
                           labelWidth=260, valueType=float, orientation="horizontal")
+
 
         self.set_Propagator()
 
@@ -239,12 +227,11 @@ class OWWOOpticalElement1D(WofryWidget, WidgetDecorator):
 
     def set_additional_parameters(self, propagation_parameters):
         if self.propagator <= 2:
-            propagation_parameters.set_additional_parameters("shift_half_pixel", self.shift_half_pixel==1)
+            pass
         elif self.propagator == 3:
-            propagation_parameters.set_additional_parameters("shuffle_interval", self.shuffle_interval)
-            propagation_parameters.set_additional_parameters("calculate_grid_only", self.calculate_grid_only)
+            propagation_parameters.set_additional_parameters("magnification_x", self.magnification_x)
+            propagation_parameters.set_additional_parameters("magnification_N", self.magnification_N)
         elif self.propagator == 4:
-            propagation_parameters.set_additional_parameters("shift_half_pixel", self.shift_half_pixel == 1)
             propagation_parameters.set_additional_parameters("magnification_x", self.magnification_x)
 
     def get_optical_element(self):
@@ -264,12 +251,11 @@ class OWWOOpticalElement1D(WofryWidget, WidgetDecorator):
         for index in indexes:
             self.tabs.removeTab(size-1-index)
 
-        titles = ["Wavefront 1D"]
         self.tab = []
         self.plot_canvas = []
 
-        for index in range(0, len(titles)):
-            self.tab.append(gui.createTabPage(self.tabs, titles[index]))
+        for index in range(0, len(self.plot_titles)):
+            self.tab.append(gui.createTabPage(self.tabs, self.plot_titles[index]))
             self.plot_canvas.append(None)
 
         for tab in self.tab:
@@ -282,19 +268,46 @@ class OWWOOpticalElement1D(WofryWidget, WidgetDecorator):
 
             self.progressBarSet(progressBarValue)
 
-            titles = ["Wavefront 1D Intensity"]
-
             self.plot_data1D(x=1e6*self.wavefront_to_plot.get_abscissas(),
                              y=self.wavefront_to_plot.get_intensity(),
                              progressBarValue=progressBarValue,
                              tabs_canvas_index=0,
                              plot_canvas_index=0,
-                             title=titles[0],
+                             title=self.plot_titles[0],
                              xtitle="Spatial Coordinate [$\mu$m]",
                              ytitle="Intensity")
 
 
-            self.plot_canvas[0].resetZoom()
+            self.plot_data1D(x=1e6*self.wavefront_to_plot.get_abscissas(),
+                             y=self.wavefront_to_plot.get_phase(from_minimum_intensity=0.1,unwrap=1),
+                             progressBarValue=progressBarValue + 10,
+                             tabs_canvas_index=1,
+                             plot_canvas_index=1,
+                             title=self.plot_titles[1],
+                             xtitle="Spatial Coordinate [$\mu$m]",
+                             ytitle="Phase [unwrapped, for intensity > 10% of peak] (rad)")
+
+            self.plot_data1D(x=1e6*self.wavefront_to_plot.get_abscissas(),
+                             y=numpy.real(self.wavefront_to_plot.get_complex_amplitude()),
+                             progressBarValue=progressBarValue + 10,
+                             tabs_canvas_index=2,
+                             plot_canvas_index=2,
+                             title=self.plot_titles[2],
+                             xtitle="Spatial Coordinate [$\mu$m]",
+                             ytitle="Real(Amplitude)")
+
+            self.plot_data1D(x=1e6*self.wavefront_to_plot.get_abscissas(),
+                             y=numpy.imag(self.wavefront_to_plot.get_complex_amplitude()),
+                             progressBarValue=progressBarValue + 10,
+                             tabs_canvas_index=3,
+                             plot_canvas_index=3,
+                             title=self.plot_titles[3],
+                             xtitle="Spatial Coordinate [$\mu$m]",
+                             ytitle="Imag(Amplitude)")
+
+
+            for i in range(len(self.plot_titles)):
+                self.plot_canvas[i].resetZoom()
 
             self.progressBarFinished()
 
