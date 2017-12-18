@@ -44,6 +44,8 @@ class OWGenericWavefront1D(WofryWidget):
     complex_amplitude_re = Setting(1.0)
     complex_amplitude_im = Setting(0.0)
     radius = Setting(1.0)
+    center = Setting(0.0)
+    inclination = Setting(0.0)
 
     gaussian_sigma = Setting(0.001)
     gaussian_amplitude = Setting(1.0)
@@ -141,15 +143,18 @@ class OWGenericWavefront1D(WofryWidget):
                      sendSelectedValue=False, orientation="horizontal")
 
 
-        self.plane_box = oasysgui.widgetBox(box_amplitude, "", addSpace=False, orientation="vertical", height=90)
+        self.plane_box = oasysgui.widgetBox(box_amplitude, "", addSpace=False, orientation="vertical", height=120)
         self.spherical_box = oasysgui.widgetBox(box_amplitude, "", addSpace=False, orientation="vertical", height=90)
         self.gaussian_box = oasysgui.widgetBox(box_amplitude, "", addSpace=False, orientation="vertical", height=90)
         self.gsm_box = oasysgui.widgetBox(box_amplitude, "", addSpace=False, orientation="vertical", height=90)
 
         # --- PLANE
 
+        oasysgui.lineEdit(self.plane_box, self, "inclination", "Inclination [rad]",
+                          labelWidth=300, valueType=float, orientation="horizontal")
+
         gui.comboBox(self.plane_box, self, "initialize_amplitude", label="Amplitude Initialization", labelWidth=350,
-                     items=["Complex", "Real"],
+                     items=["Complex", "Amplitude and Phase"],
                      callback=self.set_Amplitude,
                      sendSelectedValue=False, orientation="horizontal")
 
@@ -176,6 +181,9 @@ class OWGenericWavefront1D(WofryWidget):
         # ------ SPHERIC
 
         oasysgui.lineEdit(self.spherical_box, self, "radius", "Radius [m]",
+                          labelWidth=300, valueType=float, orientation="horizontal")
+
+        oasysgui.lineEdit(self.spherical_box, self, "center", "Center [m]",
                           labelWidth=300, valueType=float, orientation="horizontal")
 
         amplitude_box_3 = oasysgui.widgetBox(self.spherical_box, "", addSpace=False, orientation="horizontal", height=50)
@@ -259,8 +267,11 @@ class OWGenericWavefront1D(WofryWidget):
         else:
             congruence.checkStrictlyPositiveNumber(self.steps_step, "Step")
 
-        if self.kind_of_wave == 1:
+        if self.kind_of_wave == 0:
+            congruence.checkPositiveNumber(numpy.abs(self.inclination), "Inclination")
+        elif self.kind_of_wave == 1:
             congruence.checkStrictlyPositiveNumber(numpy.abs(self.radius), "Radius")
+            congruence.checkPositiveNumber(numpy.abs(self.center), "Center")
         elif self.kind_of_wave > 1:
             congruence.checkStrictlyPositiveNumber(self.gaussian_sigma, "Sigma")
             congruence.checkStrictlyPositiveNumber(self.gaussian_amplitude, "Amplitude of the Spectral Density")
@@ -287,11 +298,13 @@ class OWGenericWavefront1D(WofryWidget):
 
             if self.kind_of_wave == 0: #plane
                 if self.initialize_amplitude == 0:
-                    self.wavefront1D.set_plane_wave_from_complex_amplitude(complex_amplitude=complex(self.complex_amplitude_re, self.complex_amplitude_im))
+                    self.wavefront1D.set_plane_wave_from_complex_amplitude(complex_amplitude=complex(
+                        self.complex_amplitude_re, self.complex_amplitude_im), inclination=self.inclination)
                 else:
-                    self.wavefront1D.set_plane_wave_from_amplitude_and_phase(amplitude=self.amplitude, phase=self.phase)
+                    self.wavefront1D.set_plane_wave_from_amplitude_and_phase(amplitude=self.amplitude, phase=self.phase,
+                                                                             inclination=self.inclination)
             elif self.kind_of_wave == 1: # spheric
-                self.wavefront1D.set_spherical_wave(radius=self.radius, complex_amplitude=complex(self.complex_amplitude_re, self.complex_amplitude_im))
+                self.wavefront1D.set_spherical_wave(radius=self.radius, center=self.center, complex_amplitude=complex(self.complex_amplitude_re, self.complex_amplitude_im))
             elif self.kind_of_wave == 2: # gaussian
                 self.wavefront1D.set_gaussian(sigma_x=self.gaussian_sigma, amplitude=self.gaussian_amplitude)
             elif self.kind_of_wave == 3: # g.s.m.
