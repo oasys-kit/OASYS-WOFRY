@@ -125,13 +125,13 @@ class OW2Dto1D(WofryWidget):
                              xtitle="Horizontal Coordinate",
                              ytitle="Vertical Coordinate")
 
-            self.plot_data1D(x=self.wavefront1D.get_abscissas(),
+            self.plot_data1D(x=1e6*self.wavefront1D.get_abscissas(),
                              y=self.wavefront1D.get_intensity(),
                              progressBarValue=progressBarValue + 25,
                              tabs_canvas_index=1,
                              plot_canvas_index=1,
                              title=titles[1],
-                             xtitle="Horizontal Coordinate" if self.section_axis == 0 else "Vertical Coordinate",
+                             xtitle="Horizontal Coordinate [$\mu$m]" if self.section_axis == 0 else "Vertical Coordinate [$\mu$m]",
                              ytitle="Intensity")
 
 
