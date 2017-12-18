@@ -24,7 +24,6 @@ class OWWOSlit(OWWOOpticalElementWithBoundaryShape):
 
     width = Setting(0.0)
     height = Setting(0.0)
-    radius = Setting(0.0)
 
     def __init__(self):
         super().__init__()

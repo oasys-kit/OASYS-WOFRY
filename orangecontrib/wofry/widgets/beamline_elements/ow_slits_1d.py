@@ -21,8 +21,7 @@ class OWWOSlit1D(OWWOOpticalElementWithBoundaryShape1D):
 
     vertical_shift = Setting(0.0)
 
-    height = Setting(0.0)
-    radius = Setting(0.0)
+    height = Setting(0.0001)
 
     def __init__(self):
         super().__init__()
@@ -37,9 +36,11 @@ class OWWOSlit1D(OWWOOpticalElementWithBoundaryShape1D):
 if __name__ == "__main__":
     import sys
     from PyQt5.QtWidgets import QApplication
+    from wofry.propagator.wavefront1D.generic_wavefront import GenericWavefront1D
+
     a = QApplication(sys.argv)
     ow = OWWOSlit1D()
-
+    ow.input_wavefront = GenericWavefront1D.initialize_wavefront_from_range(-0.001,0.001,500)
     ow.show()
     a.exec_()
     ow.saveSettings()
