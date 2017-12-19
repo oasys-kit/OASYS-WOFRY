@@ -37,13 +37,13 @@ class OWGenericWavefront1D(WofryWidget):
     range_to = Setting(0.0005)
     steps_start = Setting(-0.0005)
     steps_step = Setting(1e-6)
-
     kind_of_wave = Setting(0)
+
 
     initialize_amplitude = Setting(0)
     complex_amplitude_re = Setting(1.0)
     complex_amplitude_im = Setting(0.0)
-    radius = Setting(1.0)
+    radius = Setting(140.0)
     center = Setting(0.0)
     inclination = Setting(0.0)
 
@@ -65,6 +65,7 @@ class OWGenericWavefront1D(WofryWidget):
         self.addAction(self.runaction)
 
 
+        gui.separator(self.controlArea)
         gui.separator(self.controlArea)
 
         button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
@@ -311,12 +312,20 @@ class OWGenericWavefront1D(WofryWidget):
                 self.wavefront1D.set_gaussian_hermite_mode(sigma_x=self.gaussian_sigma, amplitude=self.gaussian_amplitude, mode_x=self.gaussian_mode)
 
 
-            current_index = self.tabs.currentIndex()
+            try:
+                current_index = self.tabs.currentIndex()
+            except:
+                current_index = None
             self.initializeTabs()
             self.plot_results()
-            self.tabs.setCurrentIndex(current_index)
+            if current_index is not None:
+                try:
+                    self.tabs.setCurrentIndex(current_index)
+                except:
+                    pass
 
             self.send("GenericWavefront1D", self.wavefront1D)
+
         except Exception as exception:
             QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)
 
@@ -335,6 +344,7 @@ class OWGenericWavefront1D(WofryWidget):
                              progressBarValue=progressBarValue,
                              tabs_canvas_index=0,
                              plot_canvas_index=0,
+                             calculate_fwhm=True,
                              title=self.titles[0],
                              xtitle="Spatial Coordinate [$\mu$m]",
                              ytitle="Intensity")
@@ -344,6 +354,7 @@ class OWGenericWavefront1D(WofryWidget):
                              progressBarValue=progressBarValue + 10,
                              tabs_canvas_index=1,
                              plot_canvas_index=1,
+                             calculate_fwhm=False,
                              title=self.titles[1],
                              xtitle="Spatial Coordinate [$\mu$m]",
                              ytitle="Phase [unwrapped, for intensity > 10% of peak] (rad)")
@@ -353,6 +364,7 @@ class OWGenericWavefront1D(WofryWidget):
                              progressBarValue=progressBarValue + 10,
                              tabs_canvas_index=2,
                              plot_canvas_index=2,
+                             calculate_fwhm=False,
                              title=self.titles[2],
                              xtitle="Spatial Coordinate [$\mu$m]",
                              ytitle="Real(Amplitude)")
@@ -362,6 +374,7 @@ class OWGenericWavefront1D(WofryWidget):
                              progressBarValue=progressBarValue + 10,
                              tabs_canvas_index=3,
                              plot_canvas_index=3,
+                             calculate_fwhm=False,
                              title=self.titles[3],
                              xtitle="Spatial Coordinate [$\mu$m]",
                              ytitle="Imag(Amplitude)")

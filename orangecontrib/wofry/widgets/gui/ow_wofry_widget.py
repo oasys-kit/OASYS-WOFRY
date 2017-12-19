@@ -98,7 +98,7 @@ class WofryWidget(AutomaticWidget):
         raise NotImplementedError()
 
     def plot_data1D(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="",
-                   log_x=False, log_y=False, color='blue', replace=True, control=False):
+                   log_x=False, log_y=False, color='blue', replace=True, control=False, calculate_fwhm=True):
 
         if self.plot_canvas[plot_canvas_index] is None:
             self.plot_canvas[plot_canvas_index] = oasysgui.plotWindow(parent=None,
@@ -131,16 +131,19 @@ class WofryWidget(AutomaticWidget):
             self.plot_canvas[plot_canvas_index].fitAction.setVisible(True)
 
             # overwrite FWHM and peak values
+            if calculate_fwhm:
+                try:
+                    t = numpy.where(y>=max(y)*0.5)
+                    x_left,x_right =  x[t[0][0]], x[t[0][-1]]
 
-            t = numpy.where(y>=max(y)*0.5)
-            x_left,x_right =  x[t[0][0]], x[t[0][-1]]
-
-            self.plot_canvas[plot_canvas_index].addMarker(x_left, 0.5*y.max(), legend="G1",
-                                                          text="FWHM=%5.2f"%(numpy.abs(x_right-x_left)),
-                                                          color="pink",selectable=False, draggable=False,
-                                                          symbol="+", constraint=None)
-            self.plot_canvas[plot_canvas_index].addMarker(x_right, 0.5*y.max(), legend="G2", text=None, color="pink",
-                                                          selectable=False, draggable=False, symbol="+", constraint=None)
+                    self.plot_canvas[plot_canvas_index].addMarker(x_left, 0.5*y.max(), legend="G1",
+                                                                  text="FWHM=%5.2f"%(numpy.abs(x_right-x_left)),
+                                                                  color="pink",selectable=False, draggable=False,
+                                                                  symbol="+", constraint=None)
+                    self.plot_canvas[plot_canvas_index].addMarker(x_right, 0.5*y.max(), legend="G2", text=None, color="pink",
+                                                                  selectable=False, draggable=False, symbol="+", constraint=None)
+                except:
+                    pass
 
             # PEAK
             # index_ymax = numpy.argmax(y)
@@ -168,7 +171,7 @@ class WofryWidget(AutomaticWidget):
             if log_y:
                 self.plot_canvas[plot_canvas_index].setGraphYLimits(min(y), max(y)*1.2)
             else:
-                self.plot_canvas[plot_canvas_index].setGraphYLimits(min(y), max(y)*1.01)
+                self.plot_canvas[plot_canvas_index].setGraphYLimits(min(y)*0.99, max(y)*1.01)
 
         self.progressBarSet(progressBarValue)
 

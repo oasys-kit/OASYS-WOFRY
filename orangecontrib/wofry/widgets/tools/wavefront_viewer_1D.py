@@ -93,7 +93,7 @@ class WavefrontViewer1D(WofryWidget):
         self.progressBarInit()
 
         try:
-            if not self.wavefront1D is None:
+            if self.wavefront1D is not None:
                 current_index = self.tabs.currentIndex()
                 self.initializeTabs()
                 self.plot_results()
@@ -103,7 +103,7 @@ class WavefrontViewer1D(WofryWidget):
 
 
     def do_plot_results(self, progressBarValue):
-        if not self.wavefront1D is None:
+        if self.wavefront1D is not None:
 
             self.progressBarSet(progressBarValue)
 
@@ -149,6 +149,7 @@ class WavefrontViewer1D(WofryWidget):
 
 if __name__ == '__main__':
 
+    from wofry.propagator.wavefront1D.generic_wavefront import GenericWavefront1D
     from PyQt5.QtWidgets import QApplication
 
     app = QApplication([])
@@ -157,12 +158,10 @@ if __name__ == '__main__':
 
     # filename_np = "/users/srio/COMSYLD/comsyl/comsyl/calculations/septest_cm_new_u18_2m_1h_s2.5.npz"
     # af = CompactAFReader.initialize_from_file(filename_np)
-    # wf = GenericWavefront2D.initialize_wavefront_from_arrays(af.x_coordinates(),
-    #                                                          af.y_coordinates(),
-    #                                                          af.mode(0))
-    # wf.set_photon_energy(af.photon_energy())
+    wf = GenericWavefront1D.initialize_wavefront_from_arrays(numpy.linspace(-1e-3,1e-3,300),
+                                                             numpy.linspace(-1e-3,1e-3,300)**2 )
 
-    # ow.set_input(wf)
+    ow.set_input(wf)
     ow.show()
     app.exec_()
     ow.saveSettings()
