@@ -50,9 +50,11 @@ class OWGenericWavefront1D(WofryWidget):
     gaussian_sigma = Setting(0.001)
     gaussian_amplitude = Setting(1.0)
     gaussian_mode = Setting(0)
+    gaussian_shift = Setting(0.0)
 
     amplitude = Setting(1.0)
     phase = Setting(0.0)
+    add_random_phase = Setting(0)
 
     wavefront1D = None
     titles = ["Wavefront 1D Intensity", "Wavefront 1D Phase","Wavefront Real(Amplitude)","Wavefront Imag(Amplitude)"]
@@ -136,7 +138,7 @@ class OWGenericWavefront1D(WofryWidget):
 
         self.set_Initialization()
 
-        box_amplitude = oasysgui.widgetBox(self.tab_sou, "Amplitude Settings", addSpace=False, orientation="vertical")
+        box_amplitude = oasysgui.widgetBox(self.tab_sou, "Amplitude and phase Settings", addSpace=False, orientation="vertical")
 
         gui.comboBox(box_amplitude, self, "kind_of_wave", label="Kind of Wave", labelWidth=350,
                      items=["Plane", "Spherical", "Gaussian", "Gaussian Shell Model"],
@@ -205,6 +207,9 @@ class OWGenericWavefront1D(WofryWidget):
         oasysgui.lineEdit(self.gaussian_box, self, "gaussian_amplitude", "Amplitude of the Spectral Density",
                           labelWidth=250, valueType=float, orientation="horizontal")
 
+        oasysgui.lineEdit(self.gaussian_box, self, "gaussian_shift", "Center",
+                          labelWidth=250, valueType=float, orientation="horizontal")
+
         # ---- GAUSSIAN SHELL MODEL
 
         oasysgui.lineEdit(self.gsm_box, self, "gaussian_sigma", "Sigma ",
@@ -216,8 +221,13 @@ class OWGenericWavefront1D(WofryWidget):
         oasysgui.lineEdit(self.gsm_box, self, "gaussian_mode", "Mode",
                           labelWidth=250, valueType=int, orientation="horizontal")
 
-        self.set_KindOfWave()
+        oasysgui.lineEdit(self.gsm_box, self, "gaussian_shift", "Center",
+                          labelWidth=250, valueType=float, orientation="horizontal")
 
+        gui.checkBox(box_amplitude, self, "add_random_phase", "Add random phase")
+
+
+        self.set_KindOfWave()
 
     def set_Units(self):
         self.units_box_1.setVisible(self.units == 0)
@@ -275,7 +285,8 @@ class OWGenericWavefront1D(WofryWidget):
             congruence.checkPositiveNumber(numpy.abs(self.center), "Center")
         elif self.kind_of_wave > 1:
             congruence.checkStrictlyPositiveNumber(self.gaussian_sigma, "Sigma")
-            congruence.checkStrictlyPositiveNumber(self.gaussian_amplitude, "Amplitude of the Spectral Density")
+            congruence.checkStrictlyPositiveNumber(self.gaussian_amplitude, "Amplitude of the Gaussian")
+            congruence.checkNumber(self.gaussian_shift, "Center of the Gaussian")
 
             if self.kind_of_wave == 3:
                 congruence.checkPositiveNumber(self.gaussian_mode, "Mode")
@@ -305,12 +316,17 @@ class OWGenericWavefront1D(WofryWidget):
                     self.wavefront1D.set_plane_wave_from_amplitude_and_phase(amplitude=self.amplitude, phase=self.phase,
                                                                              inclination=self.inclination)
             elif self.kind_of_wave == 1: # spheric
-                self.wavefront1D.set_spherical_wave(radius=self.radius, center=self.center, complex_amplitude=complex(self.complex_amplitude_re, self.complex_amplitude_im))
+                self.wavefront1D.set_spherical_wave(radius=self.radius, center=self.center,
+                                    complex_amplitude=complex(self.complex_amplitude_re, self.complex_amplitude_im))
             elif self.kind_of_wave == 2: # gaussian
-                self.wavefront1D.set_gaussian(sigma_x=self.gaussian_sigma, amplitude=self.gaussian_amplitude)
+                self.wavefront1D.set_gaussian(sigma_x=self.gaussian_sigma, amplitude=self.gaussian_amplitude,
+                                              shift=self.gaussian_shift)
             elif self.kind_of_wave == 3: # g.s.m.
-                self.wavefront1D.set_gaussian_hermite_mode(sigma_x=self.gaussian_sigma, amplitude=self.gaussian_amplitude, mode_x=self.gaussian_mode)
+                self.wavefront1D.set_gaussian_hermite_mode(sigma_x=self.gaussian_sigma,amplitude=self.gaussian_amplitude,
+                                            mode_x=self.gaussian_mode,shift=self.gaussian_shift)
 
+            if self.add_random_phase:
+                self.wavefront1D.add_phase_shifts(2*numpy.pi*numpy.random.random(self.wavefront1D.size()))
 
             try:
                 current_index = self.tabs.currentIndex()
