@@ -19,7 +19,7 @@ class OWWavefrontFileReader(oasyswidget.OWWidget):
     icon = "icons/file_reader.png"
     maintainer = "Manuel Sanchez del Rio"
     maintainer_email = "srio(@at@)esrf.eu"
-    priority = 42
+    priority = 5
     category = "Utility"
     keywords = ["data", "file", "load", "read"]
 

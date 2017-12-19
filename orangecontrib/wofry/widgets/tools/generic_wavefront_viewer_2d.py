@@ -16,7 +16,7 @@ class GenericWavefrontViewer2D(WofryWidget):
     id = "WavefrontViewer2D"
     description = "Wavefront Viewer 2D"
     icon = "icons/accumulation.png"
-    priority = 40
+    priority = 2
 
     category = ""
     keywords = ["data", "file", "load", "read"]
@@ -63,7 +63,7 @@ class GenericWavefrontViewer2D(WofryWidget):
 
 
         incremental_box = oasysgui.widgetBox(self.tab_sou, "Incremental Result", addSpace=True, orientation="horizontal", height=80)
-        gui.checkBox(incremental_box, self, "keep_result", "Keep Result")
+        gui.checkBox(incremental_box, self, "keep_result", "result")
         gui.button(incremental_box, self, "Clear", callback=self.reset_accumumation)
 
         incremental_box = oasysgui.widgetBox(self.tab_sou, "Show plots", addSpace=True, orientation="horizontal", height=80)

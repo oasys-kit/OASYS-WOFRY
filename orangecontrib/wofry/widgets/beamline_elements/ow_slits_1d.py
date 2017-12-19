@@ -17,7 +17,7 @@ class OWWOSlit1D(OWWOOpticalElementWithBoundaryShape1D):
     name = "Slit 1D"
     description = "Wofry: Slit 1D"
     icon = "icons/slit1d.png"
-    priority = 3
+    priority = 21
 
     vertical_shift = Setting(0.0)
 

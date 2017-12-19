@@ -19,7 +19,7 @@ class OWWavefront2DResample(oasyswidget.OWWidget):
     icon = "icons/Wavefront2DResample.png"
     author = "create_widget.py"
     maintainer_email = "srio@esrf.eu"
-    priority = 40
+    priority = 11
 
     category = ""
     keywords = ["oasysaddontemplate", "Wavefront2DResample", "data", "file", "load", "read"]

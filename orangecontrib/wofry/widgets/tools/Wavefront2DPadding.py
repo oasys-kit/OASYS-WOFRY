@@ -21,7 +21,7 @@ class OWWavefront2DPadding(oasyswidget.OWWidget):
     icon = "icons/Wavefront2DPadding.png"
     author = "create_widget.py"
     maintainer_email = "srio@esrf.eu"
-    priority = 40
+    priority = 10
 
     category = ""
     keywords = ["oasysaddontemplate", "Wavefront2DPadding", "data", "file", "load", "read"]

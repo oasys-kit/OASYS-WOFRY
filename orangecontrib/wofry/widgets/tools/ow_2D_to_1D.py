@@ -19,7 +19,7 @@ class OW2Dto1D(WofryWidget):
     id = "Wavefront2Dto1D"
     description = "Wavefront 2D to 1D"
     icon = "icons/2d_to_1d.png"
-    priority = 3
+    priority = 4
 
     category = "Wofry Tools"
     keywords = ["data", "file", "load", "read"]

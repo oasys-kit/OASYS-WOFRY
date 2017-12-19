@@ -15,7 +15,7 @@ class OWWavefrontFileWriter(widget.OWWidget):
     icon = "icons/file_writer.png"
     maintainer = "Manuel Sanchez del Rio"
     maintainer_email = "srio(@at@)esrf.eu"
-    priority = 44
+    priority = 6
     category = "Utility"
     keywords = ["data", "file", "load", "read"]
 

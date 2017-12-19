@@ -17,7 +17,7 @@ class OWWOStop(OWWOOpticalElementWithBoundaryShape):
     name = "BeamStopper"
     description = "Wofry: BeamStopper"
     icon = "icons/stop.png"
-    priority = 2
+    priority = 42
 
     horizontal_shift = Setting(0.0)
     vertical_shift = Setting(0.0)
