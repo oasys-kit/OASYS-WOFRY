@@ -21,6 +21,7 @@ from wofry.propagator.wavefront2D.generic_wavefront import GenericWavefront2D
 from wofry.propagator.propagators2D.fresnel import Fresnel2D, FresnelConvolution2D
 from wofry.propagator.propagators2D.fraunhofer import Fraunhofer2D
 from wofry.propagator.propagators2D.integral import Integral2D
+from wofry.propagator.propagators2D.fresnel_zoom_xy import FresnelZoomXY2D
 
 from orangecontrib.wofry.widgets.gui.ow_wofry_widget import WofryWidget
 
@@ -31,6 +32,7 @@ def initialize_default_propagator_2D():
     propagator.add_propagator(Fresnel2D())
     propagator.add_propagator(FresnelConvolution2D())
     propagator.add_propagator(Integral2D())
+    propagator.add_propagator(FresnelZoomXY2D())
 
 try:
     initialize_default_propagator_2D()
@@ -64,13 +66,15 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
     input_wavefront = None
     wavefront_to_plot = None
 
-    propagators_list = ["Fresnel", "Fresnel (Convolution)", "Fraunhofer", "Integral"]
+    propagators_list = ["Fresnel", "Fresnel (Convolution)", "Fraunhofer", "Integral", "Fresnel Zoom XY"]
 
     propagator = Setting(0)
     shift_half_pixel = Setting(1)
 
     shuffle_interval = Setting(0)
     calculate_grid_only = Setting(1)
+    magnification_x = Setting(1.0)
+    magnification_y = Setting(1.0)
 
     def __init__(self):
         super().__init__()
@@ -116,8 +120,9 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
 
         oasysgui.lineEdit(self.coordinates_box, self, "p", "Distance from previous Continuation Plane [m]", labelWidth=280, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(self.coordinates_box, self, "q", "Distance to next Continuation Plane [m]", labelWidth=280, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.coordinates_box, self, "angle_radial", "Incident Angle (to normal) [deg]", labelWidth=280, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.coordinates_box, self, "angle_azimuthal", "Rotation along Beam Axis [deg]", labelWidth=280, valueType=float, orientation="horizontal")
+        # srio commented; TODO: implement it correctly
+        # oasysgui.lineEdit(self.coordinates_box, self, "angle_radial", "Incident Angle (to normal) [deg]", labelWidth=280, valueType=float, orientation="horizontal")
+        # oasysgui.lineEdit(self.coordinates_box, self, "angle_azimuthal", "Rotation along Beam Axis [deg]", labelWidth=280, valueType=float, orientation="horizontal")
 
         self.draw_specific_box()
 
@@ -147,6 +152,20 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
                      items=["No", "Yes"],
                      sendSelectedValue=False, orientation="horizontal")
 
+
+        #new zoom
+        self.zoom_box = oasysgui.widgetBox(self.tab_pro, "", addSpace=False, orientation="vertical", height=90)
+
+        gui.comboBox(self.zoom_box, self, "shift_half_pixel", label="Shift Half Pixel", labelWidth=260,
+                     items=["No", "Yes"],
+                     sendSelectedValue=False, orientation="horizontal")
+
+        oasysgui.lineEdit(self.zoom_box, self, "magnification_x", "Magnification X",
+                          labelWidth=260, valueType=float, orientation="horizontal")
+
+        oasysgui.lineEdit(self.zoom_box, self, "magnification_y", "Magnification Y",
+                          labelWidth=260, valueType=float, orientation="horizontal")
+
         self.set_Propagator()
 
 
@@ -154,6 +173,7 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
         self.fresnel_box.setVisible(self.propagator <= 1)
         self.fraunhofer_box.setVisible(self.propagator == 2)
         self.integral_box.setVisible(self.propagator == 3)
+        self.zoom_box.setVisible(self.propagator == 4)
 
     def draw_specific_box(self):
         raise NotImplementedError()
@@ -219,6 +239,8 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
             return Fraunhofer2D.HANDLER_NAME
         elif self.propagator == 3:
             return Integral2D.HANDLER_NAME
+        elif self.propagator == 4:
+            return FresnelZoomXY2D.HANDLER_NAME
 
     def set_additional_parameters(self, propagation_parameters):
         if self.propagator <= 2:
@@ -226,7 +248,10 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
         elif self.propagator == 3:
             propagation_parameters.set_additional_parameters("shuffle_interval", self.shuffle_interval)
             propagation_parameters.set_additional_parameters("calculate_grid_only", self.calculate_grid_only)
-
+        elif self.propagator == 4:
+            propagation_parameters.set_additional_parameters("shift_half_pixel", self.shift_half_pixel == 1)
+            propagation_parameters.set_additional_parameters("magnification_x", self.magnification_x)
+            propagation_parameters.set_additional_parameters("magnification_y", self.magnification_y)
 
     def get_optical_element(self):
         raise NotImplementedError()
@@ -265,14 +290,14 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
             titles = ["Wavefront 2D Intensity"]
 
             self.plot_data2D(data2D=self.wavefront_to_plot.get_intensity(),
-                             dataX=self.wavefront_to_plot.get_coordinate_x(),
-                             dataY=self.wavefront_to_plot.get_coordinate_y(),
+                             dataX=1e6*self.wavefront_to_plot.get_coordinate_x(),
+                             dataY=1e6*self.wavefront_to_plot.get_coordinate_y(),
                              progressBarValue=progressBarValue,
                              tabs_canvas_index=0,
                              plot_canvas_index=0,
                              title=titles[0],
-                             xtitle="Horizontal Coordinate",
-                             ytitle="Vertical Coordinate")
+                             xtitle="Horizontal [$\mu$m] ( %d pixels)"%(self.wavefront_to_plot.get_coordinate_x().size),
+                             ytitle="Vertical [$\mu$m] ( %d pixels)"%(self.wavefront_to_plot.get_coordinate_y().size))
 
 
             self.progressBarFinished()
@@ -794,3 +819,4 @@ class OWWOOpticalElementWithSurfaceShape(OWWOOpticalElementWithBoundaryShape):
         #TODO: check and passage of shapes
 
         raise NotImplementedError()
+

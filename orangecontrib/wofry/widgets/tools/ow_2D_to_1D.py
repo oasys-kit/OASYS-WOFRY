@@ -19,7 +19,7 @@ class OW2Dto1D(WofryWidget):
     id = "Wavefront2Dto1D"
     description = "Wavefront 2D to 1D"
     icon = "icons/2d_to_1d.png"
-    priority = 3
+    priority = 4
 
     category = "Wofry Tools"
     keywords = ["data", "file", "load", "read"]
@@ -125,13 +125,13 @@ class OW2Dto1D(WofryWidget):
                              xtitle="Horizontal Coordinate",
                              ytitle="Vertical Coordinate")
 
-            self.plot_data1D(x=self.wavefront1D.get_abscissas(),
+            self.plot_data1D(x=1e6*self.wavefront1D.get_abscissas(),
                              y=self.wavefront1D.get_intensity(),
                              progressBarValue=progressBarValue + 25,
                              tabs_canvas_index=1,
                              plot_canvas_index=1,
                              title=titles[1],
-                             xtitle="Horizontal Coordinate" if self.section_axis == 0 else "Vertical Coordinate",
+                             xtitle="Horizontal Coordinate [$\mu$m]" if self.section_axis == 0 else "Vertical Coordinate [$\mu$m]",
                              ytitle="Intensity")
 
 

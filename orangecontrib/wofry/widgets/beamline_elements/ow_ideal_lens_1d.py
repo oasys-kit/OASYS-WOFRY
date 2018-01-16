@@ -6,18 +6,17 @@ from syned.beamline.optical_elements.ideal_elements.lens import IdealLens
 
 from wofry.beamline.optical_elements.ideal_elements.lens import WOIdealLens
 
-from orangecontrib.wofry.widgets.gui.ow_optical_element import OWWOOpticalElement
+from orangecontrib.wofry.widgets.gui.ow_optical_element_1d import OWWOOpticalElement1D
 
 
-class OWWOIdealLens(OWWOOpticalElement):
+class OWWOIdealLens1D(OWWOOpticalElement1D):
 
-    name = "Ideal Lens"
-    description = "Wofry: Ideal Lens"
-    icon = "icons/ideal_lens.png"
-    priority = 43
+    name = "Ideal Lens 1D"
+    description = "Wofry: Ideal Lens 1D"
+    icon = "icons/ideallens_1d.png"
+    priority = 23
 
     focal_x = Setting(0.0)
-    focal_y = Setting(0.0)
 
     def __init__(self):
         super().__init__()
@@ -27,26 +26,34 @@ class OWWOIdealLens(OWWOOpticalElement):
         self.filter_box = oasysgui.widgetBox(self.tab_bas, "Ideal Lens Setting", addSpace=True, orientation="vertical")
 
         oasysgui.lineEdit(self.filter_box, self, "focal_x", "Horizontal Focal Length [m]", labelWidth=260, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.filter_box, self, "focal_y", "Vertical Focal Length [m]", labelWidth=260, valueType=float, orientation="horizontal")
 
 
     def get_optical_element(self):
         return WOIdealLens(name=self.oe_name,
                            focal_x=self.focal_x,
-                           focal_y=self.focal_y)
+                           focal_y=None)
 
     def check_data(self):
         super().check_data()
 
         congruence.checkStrictlyPositiveNumber(self.focal_x, "Horizontal Focal Length")
-        congruence.checkStrictlyPositiveNumber(self.focal_y, "Vertical Focal Length")
+
 
     def receive_specific_syned_data(self, optical_element):
         if not optical_element is None:
             if isinstance(optical_element, IdealLens):
                 self.focal_x = optical_element._focal_x
-                self.focal_y = optical_element._focal_y
             else:
                 raise Exception("Syned Data not correct: Optical Element is not a Slit")
         else:
             raise Exception("Syned Data not correct: Empty Optical Element")
+
+if __name__ == "__main__":
+    import sys
+    from PyQt5.QtWidgets import QApplication
+    a = QApplication(sys.argv)
+    ow = OWWOIdealLens1D()
+
+    ow.show()
+    a.exec_()
+    ow.saveSettings()

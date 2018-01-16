@@ -17,14 +17,13 @@ class OWWOSlit(OWWOOpticalElementWithBoundaryShape):
     name = "Slit"
     description = "Wofry: Slit"
     icon = "icons/slit.png"
-    priority = 2
+    priority = 41
 
     horizontal_shift = Setting(0.0)
     vertical_shift = Setting(0.0)
 
     width = Setting(0.0)
     height = Setting(0.0)
-    radius = Setting(0.0)
 
     def __init__(self):
         super().__init__()

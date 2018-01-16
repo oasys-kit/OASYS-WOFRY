@@ -98,7 +98,7 @@ class WofryWidget(AutomaticWidget):
         raise NotImplementedError()
 
     def plot_data1D(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="",
-                   log_x=False, log_y=False, color='blue', replace=True, control=False):
+                   log_x=False, log_y=False, color='blue', replace=True, control=False, calculate_fwhm=True):
 
         if self.plot_canvas[plot_canvas_index] is None:
             self.plot_canvas[plot_canvas_index] = oasysgui.plotWindow(parent=None,
@@ -126,6 +126,35 @@ class WofryWidget(AutomaticWidget):
             self.plot_canvas[plot_canvas_index].setGraphXLabel(xtitle)
             self.plot_canvas[plot_canvas_index].setGraphYLabel(ytitle)
 
+
+            # ALLOW FIT BUTTON HERE
+            self.plot_canvas[plot_canvas_index].fitAction.setVisible(True)
+
+            # overwrite FWHM and peak values
+            if calculate_fwhm:
+                try:
+                    t = numpy.where(y>=max(y)*0.5)
+                    x_left,x_right =  x[t[0][0]], x[t[0][-1]]
+
+                    self.plot_canvas[plot_canvas_index].addMarker(x_left, 0.5*y.max(), legend="G1",
+                                                                  text="FWHM=%5.2f"%(numpy.abs(x_right-x_left)),
+                                                                  color="pink",selectable=False, draggable=False,
+                                                                  symbol="+", constraint=None)
+                    self.plot_canvas[plot_canvas_index].addMarker(x_right, 0.5*y.max(), legend="G2", text=None, color="pink",
+                                                                  selectable=False, draggable=False, symbol="+", constraint=None)
+                except:
+                    pass
+
+            # PEAK
+            # index_ymax = numpy.argmax(y)
+            # self.plot_canvas[plot_canvas_index].addMarker(x[index_ymax], y[index_ymax], legend="G3",
+            #                                               text=None, color="pink",
+            #                                               selectable=False, draggable=False, symbol="+", constraint=None)
+            # self.plot_canvas[plot_canvas_index].addMarker(x[index_ymax], y[index_ymax]-0.05, legend="G4",
+            #                                               text="Peak=%5.2f"%(y[index_ymax]), color="pink",
+            #                                               selectable=False, draggable=False, symbol=None, constraint=None)
+
+            #
             self.tab[tabs_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
 
         WofryWidget.plot_histo(self.plot_canvas[plot_canvas_index], x, y, title, xtitle, ytitle, color, replace)
@@ -142,7 +171,7 @@ class WofryWidget(AutomaticWidget):
             if log_y:
                 self.plot_canvas[plot_canvas_index].setGraphYLimits(min(y), max(y)*1.2)
             else:
-                self.plot_canvas[plot_canvas_index].setGraphYLimits(min(y), max(y)*1.01)
+                self.plot_canvas[plot_canvas_index].setGraphYLimits(min(y)*0.99, max(y)*1.01)
 
         self.progressBarSet(progressBarValue)
 
@@ -176,7 +205,7 @@ class WofryWidget(AutomaticWidget):
         #silx 0.4.0
         self.plot_canvas[plot_canvas_index].getMaskAction().setVisible(False)
         self.plot_canvas[plot_canvas_index].getRoiAction().setVisible(False)
-        self.plot_canvas[plot_canvas_index].getColormapAction().setVisible(False)
+        self.plot_canvas[plot_canvas_index].getColormapAction().setVisible(True)
         self.plot_canvas[plot_canvas_index].setKeepDataAspectRatio(False)
 
         self.plot_canvas[plot_canvas_index].addImage(numpy.array(data_to_plot),
@@ -186,13 +215,16 @@ class WofryWidget(AutomaticWidget):
                                                      colormap=colormap,
                                                      replace=True)
 
-        self.plot_canvas[plot_canvas_index].setActiveImage("zio billy")
 
-        from matplotlib.image import AxesImage
-        image = AxesImage(self.plot_canvas[plot_canvas_index]._backend.ax)
-        image.set_data(numpy.array(data_to_plot))
 
-        self.plot_canvas[plot_canvas_index]._backend.fig.colorbar(image, ax=self.plot_canvas[plot_canvas_index]._backend.ax)
+        # srio - color bar included in silx 0.6
+        # self.plot_canvas[plot_canvas_index].setActiveImage("zio billy")
+
+        # from matplotlib.image import AxesImage
+        # image = AxesImage(self.plot_canvas[plot_canvas_index]._backend.ax)
+        # image.set_data(numpy.array(data_to_plot))
+        #
+        # self.plot_canvas[plot_canvas_index]._backend.fig.colorbar(image, ax=self.plot_canvas[plot_canvas_index]._backend.ax)
 
         self.plot_canvas[plot_canvas_index].setGraphXLabel(xtitle)
         self.plot_canvas[plot_canvas_index].setGraphYLabel(ytitle)

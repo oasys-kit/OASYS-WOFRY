@@ -19,7 +19,7 @@ class WavefrontViewer2D(WofryWidget):
     id = "WavefrontViewer2D"
     description = "Wavefront Viewer 2D"
     icon = "icons/wv2d.png"
-    priority = 2
+    priority = 21
 
     category = "Wofry Tools"
     keywords = ["data", "file", "load", "read"]

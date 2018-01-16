@@ -37,22 +37,27 @@ class OWGenericWavefront1D(WofryWidget):
     range_to = Setting(0.0005)
     steps_start = Setting(-0.0005)
     steps_step = Setting(1e-6)
-
     kind_of_wave = Setting(0)
+
 
     initialize_amplitude = Setting(0)
     complex_amplitude_re = Setting(1.0)
     complex_amplitude_im = Setting(0.0)
-    radius = Setting(1.0)
+    radius = Setting(140.0)
+    center = Setting(0.0)
+    inclination = Setting(0.0)
 
     gaussian_sigma = Setting(0.001)
     gaussian_amplitude = Setting(1.0)
     gaussian_mode = Setting(0)
+    gaussian_shift = Setting(0.0)
 
     amplitude = Setting(1.0)
     phase = Setting(0.0)
+    add_random_phase = Setting(0)
 
     wavefront1D = None
+    titles = ["Wavefront 1D Intensity", "Wavefront 1D Phase","Wavefront Real(Amplitude)","Wavefront Imag(Amplitude)"]
 
     def __init__(self):
         super().__init__(is_automatic=False, show_view_options=False)
@@ -62,6 +67,7 @@ class OWGenericWavefront1D(WofryWidget):
         self.addAction(self.runaction)
 
 
+        gui.separator(self.controlArea)
         gui.separator(self.controlArea)
 
         button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
@@ -132,7 +138,7 @@ class OWGenericWavefront1D(WofryWidget):
 
         self.set_Initialization()
 
-        box_amplitude = oasysgui.widgetBox(self.tab_sou, "Amplitude Settings", addSpace=False, orientation="vertical")
+        box_amplitude = oasysgui.widgetBox(self.tab_sou, "Amplitude and phase Settings", addSpace=False, orientation="vertical")
 
         gui.comboBox(box_amplitude, self, "kind_of_wave", label="Kind of Wave", labelWidth=350,
                      items=["Plane", "Spherical", "Gaussian", "Gaussian Shell Model"],
@@ -140,15 +146,18 @@ class OWGenericWavefront1D(WofryWidget):
                      sendSelectedValue=False, orientation="horizontal")
 
 
-        self.plane_box = oasysgui.widgetBox(box_amplitude, "", addSpace=False, orientation="vertical", height=90)
+        self.plane_box = oasysgui.widgetBox(box_amplitude, "", addSpace=False, orientation="vertical", height=120)
         self.spherical_box = oasysgui.widgetBox(box_amplitude, "", addSpace=False, orientation="vertical", height=90)
         self.gaussian_box = oasysgui.widgetBox(box_amplitude, "", addSpace=False, orientation="vertical", height=90)
         self.gsm_box = oasysgui.widgetBox(box_amplitude, "", addSpace=False, orientation="vertical", height=90)
 
         # --- PLANE
 
+        oasysgui.lineEdit(self.plane_box, self, "inclination", "Inclination [rad]",
+                          labelWidth=300, valueType=float, orientation="horizontal")
+
         gui.comboBox(self.plane_box, self, "initialize_amplitude", label="Amplitude Initialization", labelWidth=350,
-                     items=["Complex", "Real"],
+                     items=["Complex", "Amplitude and Phase"],
                      callback=self.set_Amplitude,
                      sendSelectedValue=False, orientation="horizontal")
 
@@ -177,6 +186,9 @@ class OWGenericWavefront1D(WofryWidget):
         oasysgui.lineEdit(self.spherical_box, self, "radius", "Radius [m]",
                           labelWidth=300, valueType=float, orientation="horizontal")
 
+        oasysgui.lineEdit(self.spherical_box, self, "center", "Center [m]",
+                          labelWidth=300, valueType=float, orientation="horizontal")
+
         amplitude_box_3 = oasysgui.widgetBox(self.spherical_box, "", addSpace=False, orientation="horizontal", height=50)
 
         oasysgui.lineEdit(amplitude_box_3, self, "complex_amplitude_re", "Complex Amplitude ",
@@ -195,6 +207,9 @@ class OWGenericWavefront1D(WofryWidget):
         oasysgui.lineEdit(self.gaussian_box, self, "gaussian_amplitude", "Amplitude of the Spectral Density",
                           labelWidth=250, valueType=float, orientation="horizontal")
 
+        oasysgui.lineEdit(self.gaussian_box, self, "gaussian_shift", "Center",
+                          labelWidth=250, valueType=float, orientation="horizontal")
+
         # ---- GAUSSIAN SHELL MODEL
 
         oasysgui.lineEdit(self.gsm_box, self, "gaussian_sigma", "Sigma ",
@@ -206,8 +221,13 @@ class OWGenericWavefront1D(WofryWidget):
         oasysgui.lineEdit(self.gsm_box, self, "gaussian_mode", "Mode",
                           labelWidth=250, valueType=int, orientation="horizontal")
 
-        self.set_KindOfWave()
+        oasysgui.lineEdit(self.gsm_box, self, "gaussian_shift", "Center",
+                          labelWidth=250, valueType=float, orientation="horizontal")
 
+        gui.checkBox(box_amplitude, self, "add_random_phase", "Add random phase")
+
+
+        self.set_KindOfWave()
 
     def set_Units(self):
         self.units_box_1.setVisible(self.units == 0)
@@ -234,12 +254,11 @@ class OWGenericWavefront1D(WofryWidget):
         for index in indexes:
             self.tabs.removeTab(size-1-index)
 
-        titles = ["Wavefront 1D"]
         self.tab = []
         self.plot_canvas = []
 
-        for index in range(0, len(titles)):
-            self.tab.append(gui.createTabPage(self.tabs, titles[index]))
+        for index in range(0, len(self.titles)):
+            self.tab.append(gui.createTabPage(self.tabs, self.titles[index]))
             self.plot_canvas.append(None)
 
         for tab in self.tab:
@@ -259,11 +278,15 @@ class OWGenericWavefront1D(WofryWidget):
         else:
             congruence.checkStrictlyPositiveNumber(self.steps_step, "Step")
 
-        if self.kind_of_wave == 1:
+        if self.kind_of_wave == 0:
+            congruence.checkPositiveNumber(numpy.abs(self.inclination), "Inclination")
+        elif self.kind_of_wave == 1:
             congruence.checkStrictlyPositiveNumber(numpy.abs(self.radius), "Radius")
+            congruence.checkPositiveNumber(numpy.abs(self.center), "Center")
         elif self.kind_of_wave > 1:
             congruence.checkStrictlyPositiveNumber(self.gaussian_sigma, "Sigma")
-            congruence.checkStrictlyPositiveNumber(self.gaussian_amplitude, "Amplitude of the Spectral Density")
+            congruence.checkStrictlyPositiveNumber(self.gaussian_amplitude, "Amplitude of the Gaussian")
+            congruence.checkNumber(self.gaussian_shift, "Center of the Gaussian")
 
             if self.kind_of_wave == 3:
                 congruence.checkPositiveNumber(self.gaussian_mode, "Mode")
@@ -287,21 +310,38 @@ class OWGenericWavefront1D(WofryWidget):
 
             if self.kind_of_wave == 0: #plane
                 if self.initialize_amplitude == 0:
-                    self.wavefront1D.set_plane_wave_from_complex_amplitude(complex_amplitude=complex(self.complex_amplitude_re, self.complex_amplitude_im))
+                    self.wavefront1D.set_plane_wave_from_complex_amplitude(complex_amplitude=complex(
+                        self.complex_amplitude_re, self.complex_amplitude_im), inclination=self.inclination)
                 else:
-                    self.wavefront1D.set_plane_wave_from_amplitude_and_phase(amplitude=self.amplitude, phase=self.phase)
+                    self.wavefront1D.set_plane_wave_from_amplitude_and_phase(amplitude=self.amplitude, phase=self.phase,
+                                                                             inclination=self.inclination)
             elif self.kind_of_wave == 1: # spheric
-                self.wavefront1D.set_spherical_wave(radius=self.radius, complex_amplitude=complex(self.complex_amplitude_re, self.complex_amplitude_im))
+                self.wavefront1D.set_spherical_wave(radius=self.radius, center=self.center,
+                                    complex_amplitude=complex(self.complex_amplitude_re, self.complex_amplitude_im))
             elif self.kind_of_wave == 2: # gaussian
-                self.wavefront1D.set_gaussian(sigma_x=self.gaussian_sigma, amplitude=self.gaussian_amplitude)
+                self.wavefront1D.set_gaussian(sigma_x=self.gaussian_sigma, amplitude=self.gaussian_amplitude,
+                                              shift=self.gaussian_shift)
             elif self.kind_of_wave == 3: # g.s.m.
-                self.wavefront1D.set_gaussian_hermite_mode(sigma_x=self.gaussian_sigma, amplitude=self.gaussian_amplitude, mode_x=self.gaussian_mode)
+                self.wavefront1D.set_gaussian_hermite_mode(sigma_x=self.gaussian_sigma,amplitude=self.gaussian_amplitude,
+                                            mode_x=self.gaussian_mode,shift=self.gaussian_shift)
 
+            if self.add_random_phase:
+                self.wavefront1D.add_phase_shifts(2*numpy.pi*numpy.random.random(self.wavefront1D.size()))
 
+            try:
+                current_index = self.tabs.currentIndex()
+            except:
+                current_index = None
             self.initializeTabs()
             self.plot_results()
+            if current_index is not None:
+                try:
+                    self.tabs.setCurrentIndex(current_index)
+                except:
+                    pass
 
             self.send("GenericWavefront1D", self.wavefront1D)
+
         except Exception as exception:
             QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)
 
@@ -314,18 +354,58 @@ class OWGenericWavefront1D(WofryWidget):
 
             self.progressBarSet(progressBarValue)
 
-            titles = ["Wavefront 1D Intensity"]
 
-            self.plot_data1D(x=self.wavefront1D.get_abscissas(),
+            self.plot_data1D(x=1e6*self.wavefront1D.get_abscissas(),
                              y=self.wavefront1D.get_intensity(),
                              progressBarValue=progressBarValue,
                              tabs_canvas_index=0,
                              plot_canvas_index=0,
-                             title=titles[0],
-                             xtitle="Spatial Coordinate",
+                             calculate_fwhm=True,
+                             title=self.titles[0],
+                             xtitle="Spatial Coordinate [$\mu$m]",
                              ytitle="Intensity")
+
+            self.plot_data1D(x=1e6*self.wavefront1D.get_abscissas(),
+                             y=self.wavefront1D.get_phase(from_minimum_intensity=0.1,unwrap=1),
+                             progressBarValue=progressBarValue + 10,
+                             tabs_canvas_index=1,
+                             plot_canvas_index=1,
+                             calculate_fwhm=False,
+                             title=self.titles[1],
+                             xtitle="Spatial Coordinate [$\mu$m]",
+                             ytitle="Phase [unwrapped, for intensity > 10% of peak] (rad)")
+
+            self.plot_data1D(x=1e6*self.wavefront1D.get_abscissas(),
+                             y=numpy.real(self.wavefront1D.get_complex_amplitude()),
+                             progressBarValue=progressBarValue + 10,
+                             tabs_canvas_index=2,
+                             plot_canvas_index=2,
+                             calculate_fwhm=False,
+                             title=self.titles[2],
+                             xtitle="Spatial Coordinate [$\mu$m]",
+                             ytitle="Real(Amplitude)")
+
+            self.plot_data1D(x=1e6*self.wavefront1D.get_abscissas(),
+                             y=numpy.imag(self.wavefront1D.get_complex_amplitude()),
+                             progressBarValue=progressBarValue + 10,
+                             tabs_canvas_index=3,
+                             plot_canvas_index=3,
+                             calculate_fwhm=False,
+                             title=self.titles[3],
+                             xtitle="Spatial Coordinate [$\mu$m]",
+                             ytitle="Imag(Amplitude)")
 
 
             self.plot_canvas[0].resetZoom()
 
             self.progressBarFinished()
+
+if __name__ == '__main__':
+
+    from PyQt5.QtWidgets import QApplication
+
+    app = QApplication([])
+    ow = OWGenericWavefront1D()
+    ow.show()
+    app.exec_()
+    ow.saveSettings()
