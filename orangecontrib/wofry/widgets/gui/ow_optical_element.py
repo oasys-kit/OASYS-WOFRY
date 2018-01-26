@@ -387,10 +387,9 @@ class OWWOOpticalElementWithBoundaryShape(OWWOOpticalElement):
                                        y_top=0.5*self.height + self.vertical_shift)
 
         elif self.shape == 1:
-            boundary_shape = Ellipse(min_ax_left=-0.5*self.radius + self.horizontal_shift,
-                                     min_ax_right=0.5*self.radius + self.horizontal_shift,
-                                     maj_ax_bottom=-0.5*self.radius + self.vertical_shift,
-                                     maj_ax_top=0.5*self.radius + self.vertical_shift)
+            boundary_shape = Circle( self.radius,
+                                     x_center=self.horizontal_shift,
+                                     y_center=self.vertical_shift)
         elif self.shape == 2:
             boundary_shape = Ellipse(min_ax_left=-0.5*self.min_ax + self.horizontal_shift,
                                      min_ax_right=0.5*self.min_ax + self.horizontal_shift,
@@ -430,6 +429,10 @@ class OWWOOpticalElementWithBoundaryShape(OWWOOpticalElement):
 
                     self.width = round((numpy.abs(right - left)), 6)
                     self.height = round((numpy.abs(top - bottom)), 6)
+
+                if isinstance(optical_element._boundary_shape, Circle):
+                    self.shape = 1
+
                 if isinstance(optical_element._boundary_shape, Ellipse):
                     self.shape = 2
 
