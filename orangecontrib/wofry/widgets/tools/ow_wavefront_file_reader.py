@@ -1,17 +1,19 @@
+import os
+import h5py
 from PyQt5.QtWidgets import QMessageBox
+
+try:
+    from silx.gui.dialog.DataFileDialog import DataFileDialog
+except:
+    print("Fail to import silx.gui.dialog.DataFileDialog: need silx >= 0.7")
 
 from orangewidget import gui,widget
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets import widget as oasyswidget
 
-
 from wofry.propagator.wavefront2D.generic_wavefront import GenericWavefront2D
 from wofry.propagator.wavefront1D.generic_wavefront import GenericWavefront1D
-
-# from syned.storage_ring.light_source import LightSource
-# from syned.beamline.beamline import Beamline
-# from syned.util.json_tools import load_from_json_file, load_from_json_url
 
 class OWWavefrontFileReader(oasyswidget.OWWidget):
     name = "Generic Wavefront File Reader"
@@ -26,11 +28,17 @@ class OWWavefrontFileReader(oasyswidget.OWWidget):
     want_main_area = 0
 
     file_name = Setting("")
+    data_path = Setting("")
 
     outputs = [{"name":"GenericWavefront2D",
                 "type":GenericWavefront2D,
                 "doc":"GenericWavefront2D",
-                "id":"data"}]
+                "id":"data"},
+               {"name":"GenericWavefront1D",
+                "type":GenericWavefront1D,
+                "doc":"GenericWavefront1D",
+                "id":"data"},
+               ]
 
 
     def __init__(self):
@@ -41,42 +49,73 @@ class OWWavefrontFileReader(oasyswidget.OWWidget):
         self.addAction(self.runaction)
 
         self.setFixedWidth(590)
-        self.setFixedHeight(150)
+        self.setFixedHeight(250)
 
         left_box_1 = oasysgui.widgetBox(self.controlArea, "HDF5 Local File Selection", addSpace=True,
-                                        orientation="vertical",width=570, height=60)
+                                        orientation="vertical",width=570, height=100)
 
-        figure_box = oasysgui.widgetBox(left_box_1, "", addSpace=True, orientation="horizontal", width=550, height=50)
+        figure_box = oasysgui.widgetBox(left_box_1, "", addSpace=True, orientation="vertical", width=550, height=50)
 
-        self.le_file_name = oasysgui.lineEdit(figure_box, self, "file_name", "HDF5 File Name",
+        self.le_file_name = oasysgui.lineEdit(figure_box, self, "file_name", "File Name",
                                                     labelWidth=190, valueType=str, orientation="horizontal")
-        self.le_file_name.setFixedWidth(260)
+        self.le_file_name.setFixedWidth(360)
 
-        gui.button(figure_box, self, "...", callback=self.selectFile)
+        self.le_data_path = oasysgui.lineEdit(figure_box, self, "data_path", "Group (wavefront name)",
+                                                    labelWidth=190, valueType=str, orientation="horizontal")
+        self.le_data_path.setFixedWidth(360)
 
         gui.separator(left_box_1, height=20)
 
-        button = gui.button(self.controlArea, self, "Read File", callback=self.read_file)
+        button = gui.button(self.controlArea, self, "Browse File and Send Data", callback=self.read_file)
+        button.setFixedHeight(45)
+        gui.separator(self.controlArea, height=20)
+        button = gui.button(self.controlArea, self, "Send Data", callback=self.send_data)
         button.setFixedHeight(45)
 
         gui.rubber(self.controlArea)
 
-    def selectFile(self):
-        self.le_file_name.setText(oasysgui.selectFileFromDialog(self, self.file_name, "Open File"))
 
     def read_file(self):
-        self.setStatusMessage("")
 
+        dialog = DataFileDialog(self)
+        dialog.setFilterMode(DataFileDialog.FilterMode.ExistingGroup)
+
+        path, filename = os.path.split(self.file_name)
+        print("Setting path: ",path)
+        dialog.setDirectory(path)
+
+        # Execute the dialog as modal
+        result = dialog.exec_()
+        if result:
+            print("Selection:")
+            print(dialog.selectedFile())
+            print(dialog.selectedUrl())
+            print(dialog.selectedDataUrl().data_path())
+            self.file_name = dialog.selectedFile()
+            self.data_path = dialog.selectedDataUrl().data_path()
+            self.send_data()
+        # else:
+        #     print("Nothing selected")
+
+    def send_data(self):
         try:
             congruence.checkEmptyString(self.file_name, "File Name")
             congruence.checkFile(self.file_name)
 
-            wfr = GenericWavefront2D.load_h5_file(self.file_name,prefix="")
-
-            print(">>>>>> sending Wavefront")
-            self.send("GenericWavefront2D", wfr)
-
-
+            # get wavefront dimension
+            f = h5py.File(self.file_name, 'r')
+            dimension = f[self.data_path+"/wfr_dimension"].value
+            f.close()
+            if dimension == 1:
+                wfr = GenericWavefront1D.load_h5_file(self.file_name,self.data_path)
+                print(">>> sending 1D wavefront")
+                self.send("GenericWavefront1D", wfr)
+            elif dimension == 2:
+                wfr = GenericWavefront2D.load_h5_file(self.file_name,self.data_path)
+                print(">>> sending 2D wavefront")
+                self.send("GenericWavefront2D", wfr)
+            else:
+                raise Exception("Invalid wavefront dimension")
         except Exception as e:
             QMessageBox.critical(self, "Error", str(e.args[0]), QMessageBox.Ok)
 
@@ -86,7 +125,10 @@ if __name__ == "__main__":
 
     a = QApplication(sys.argv)
     ow = OWWavefrontFileReader()
-    ow.file_name = "/users/srio/Working/paper-hierarchical/CODE-SRW/tmp.h5"
+    # ow.file_name = "/Users/srio/OASYS_DMG/srw-scripts/hdf5/tmp_wofry.h5"
+    # ow.data_path = "/wfr2"
+    ow.file_name = "/Users/srio/OASYS_DMG/srw-scripts/hdf5/tmp.h5"
+    ow.data_path = "/wfr1"
     ow.show()
     a.exec_()
 
