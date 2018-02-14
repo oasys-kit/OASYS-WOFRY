@@ -1,3 +1,5 @@
+#TODO: this widget is valid for 1D and 2D wavefronts. Is there a better way to discriminate without duplicating widgets?
+
 import os
 
 from PyQt5.QtWidgets import QMessageBox
@@ -21,10 +23,12 @@ class OWWavefrontFileWriter(widget.OWWidget):
 
     want_main_area = 0
 
-    file_name = Setting("")
+    file_name = Setting("tmp.h5")
+    data_path = Setting("wfr")
     is_automatic_run= Setting(1)
 
-    inputs = [("GenericWavefront2D" , GenericWavefront2D, "setGenericWavefront2D" )]
+    inputs = [("GenericWavefront2D" , GenericWavefront2D, "setGenericWavefront2D" ),
+              ("GenericWavefront1D" , GenericWavefront1D, "setGenericWavefront1D" )]
 
 
     wavefront = None
@@ -37,10 +41,10 @@ class OWWavefrontFileWriter(widget.OWWidget):
         self.addAction(self.runaction)
 
         self.setFixedWidth(590)
-        self.setFixedHeight(180)
+        self.setFixedHeight(300)
 
         left_box_1 = oasysgui.widgetBox(self.controlArea, "HDF5 File Selection", addSpace=True, orientation="vertical",
-                                         width=570, height=100)
+                                         width=570, height=200)
 
         gui.checkBox(left_box_1, self, 'is_automatic_run', 'Automatic Execution')
 
@@ -52,9 +56,19 @@ class OWWavefrontFileWriter(widget.OWWidget):
                                                     labelWidth=120, valueType=str, orientation="horizontal")
         self.le_file_name.setFixedWidth(330)
 
+
         gui.button(figure_box, self, "...", callback=self.selectFile)
 
         gui.separator(left_box_1, height=10)
+
+
+
+
+        self.le_data_path = oasysgui.lineEdit(left_box_1, self, "data_path", "Wavefront name (mandatory)",
+                                                    labelWidth=200, valueType=str, orientation="horizontal")
+        self.le_data_path.setFixedWidth(330)
+
+
 
         button = gui.button(self.controlArea, self, "Write File", callback=self.write_file)
         button.setFixedHeight(45)
@@ -71,6 +85,13 @@ class OWWavefrontFileWriter(widget.OWWidget):
             if self.is_automatic_run:
                 self.write_file()
 
+    def setGenericWavefront1D(self, data):
+        if not data is None:
+            self.wavefront = data
+
+            if self.is_automatic_run:
+                self.write_file()
+
     def write_file(self):
         self.setStatusMessage("")
 
@@ -78,7 +99,9 @@ class OWWavefrontFileWriter(widget.OWWidget):
             if not self.wavefront is None:
                 congruence.checkDir(self.file_name)
 
-                self.wavefront.save_h5_file(self.file_name)
+                # note that this is valid for both 1D and 2D wavefronts because both implement
+                # the save_h5_file method. 
+                self.wavefront.save_h5_file(self.file_name,self.data_path)
 
                 path, file_name = os.path.split(self.file_name)
 
