@@ -161,7 +161,8 @@ class OWWOOpticalElement1D(WofryWidget, WidgetDecorator):
         self.zoom_box.setVisible(self.propagator == 4)
 
     def draw_specific_box(self):
-        raise NotImplementedError()
+        # raise NotImplementedError()
+        pass
 
     def check_data(self):
         congruence.checkNumber(self.p, "Distance from previous Continuation Plane")

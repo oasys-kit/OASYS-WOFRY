@@ -1,14 +1,7 @@
-import numpy
-
-from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets import gui as oasysgui
-from oasys.widgets import congruence
-
 from orangecontrib.wofry.widgets.gui.ow_optical_element import OWWOOpticalElementWithBoundaryShape
 
 from syned.beamline.optical_elements.absorbers.slit import Slit
-from syned.beamline.shape import Rectangle, Ellipse
 
 from wofry.beamline.optical_elements.absorbers.slit import WOSlit
 
