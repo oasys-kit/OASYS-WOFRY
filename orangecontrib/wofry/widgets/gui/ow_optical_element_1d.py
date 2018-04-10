@@ -70,7 +70,7 @@ class OWWOOpticalElement1D(WofryWidget, WidgetDecorator):
     propagators_list = ["Fresnel", "Fresnel (Convolution)", "Fraunhofer", "Integral", "Fresnel Zoom"]
     plot_titles = ["Wavefront 1D Intensity", "Wavefront 1D Phase","Wavefront Real(Amplitude)","Wavefront Imag(Amplitude)"]
 
-    propagator = Setting(0)
+    propagator = Setting(4)
     magnification_x = Setting(1.0) # For Fresnel Zoom & Integral
     magnification_N = Setting(1.0) # For Integral
 

@@ -69,7 +69,7 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
 
     propagators_list = ["Fresnel", "Fresnel (Convolution)", "Fraunhofer", "Integral", "Fresnel Zoom XY"]
 
-    propagator = Setting(0)
+    propagator = Setting(4)
     shift_half_pixel = Setting(1)
 
     shuffle_interval = Setting(0)
@@ -272,7 +272,7 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
         for index in indexes:
             self.tabs.removeTab(size-1-index)
 
-        titles = ["Wavefront 2D"]
+        titles = ["Intensity","Phase"]
         self.tab = []
         self.plot_canvas = []
 
@@ -289,7 +289,7 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
 
             self.progressBarSet(progressBarValue)
 
-            titles = ["Wavefront 2D Intensity"]
+            titles = ["Wavefront 2D Intensity","Wavefront 2D Phase"]
 
             self.plot_data2D(data2D=self.wavefront_to_plot.get_intensity(),
                              dataX=1e6*self.wavefront_to_plot.get_coordinate_x(),
@@ -301,6 +301,16 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
                              xtitle="Horizontal [$\mu$m] ( %d pixels)"%(self.wavefront_to_plot.get_coordinate_x().size),
                              ytitle="Vertical [$\mu$m] ( %d pixels)"%(self.wavefront_to_plot.get_coordinate_y().size))
 
+
+            self.plot_data2D(data2D=self.wavefront_to_plot.get_phase(from_minimum_intensity=0.1),
+                         dataX=1e6*self.wavefront_to_plot.get_coordinate_x(),
+                         dataY=1e6*self.wavefront_to_plot.get_coordinate_y(),
+                         progressBarValue=progressBarValue,
+                         tabs_canvas_index=1,
+                         plot_canvas_index=1,
+                         title=titles[1],
+                         xtitle="Horizontal [$\mu$m] ( %d pixels)"%(self.wavefront_to_plot.get_coordinate_x().size),
+                         ytitle="Vertical [$\mu$m] ( %d pixels)"%(self.wavefront_to_plot.get_coordinate_y().size))
 
             self.progressBarFinished()
 
