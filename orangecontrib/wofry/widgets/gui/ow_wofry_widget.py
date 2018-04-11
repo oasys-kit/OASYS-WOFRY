@@ -5,6 +5,7 @@ from silx.gui.plot import Plot2D
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QMessageBox, QApplication
 from PyQt5.QtCore import QRect
+from PyQt5.QtGui import QTextCursor
 
 from orangewidget import gui
 from orangewidget.settings import Setting
@@ -251,3 +252,10 @@ class WofryWidget(AutomaticWidget):
         plot_window.replot()
 
         plot_window.setActiveCurve(title)
+
+    def writeStdOut(self, text):
+        cursor = self.wofry_output.textCursor()
+        cursor.movePosition(QTextCursor.End)
+        cursor.insertText(text)
+        self.wofry_output.setTextCursor(cursor)
+        self.wofry_output.ensureCursorVisible()

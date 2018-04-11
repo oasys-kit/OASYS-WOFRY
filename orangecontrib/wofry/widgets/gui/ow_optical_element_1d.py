@@ -1,4 +1,4 @@
-import numpy
+import numpy, sys
 
 from PyQt5.QtGui import QPalette, QColor, QFont
 from PyQt5.QtWidgets import QMessageBox, QApplication
@@ -10,6 +10,7 @@ from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 from oasys.widgets.gui import ConfirmDialog
+from oasys.util.oasys_util import EmittingStream
 
 from syned.widget.widget_decorator import WidgetDecorator
 from syned.beamline.element_coordinates import ElementCoordinates
@@ -23,6 +24,7 @@ from wofry.propagator.propagators1D.fresnel_convolution import FresnelConvolutio
 from wofry.propagator.propagators1D.fraunhofer import Fraunhofer1D
 from wofry.propagator.propagators1D.integral import Integral1D
 from wofry.propagator.propagators1D.fresnel_zoom import FresnelZoom1D
+from wofry.propagator.propagators1D.fresnel_zoom_scaling_theorem import FresnelZoomScaling1D
 
 from orangecontrib.wofry.widgets.gui.ow_wofry_widget import WofryWidget
 
@@ -34,6 +36,7 @@ def initialize_default_propagator_1D():
     propagator.add_propagator(FresnelConvolution1D())
     propagator.add_propagator(Integral1D())
     propagator.add_propagator(FresnelZoom1D())
+    propagator.add_propagator(FresnelZoomScaling1D())
 
 try:
     initialize_default_propagator_1D()
@@ -67,12 +70,16 @@ class OWWOOpticalElement1D(WofryWidget, WidgetDecorator):
     input_wavefront = None
     wavefront_to_plot = None
 
-    propagators_list = ["Fresnel", "Fresnel (Convolution)", "Fraunhofer", "Integral", "Fresnel Zoom"]
+    propagators_list = ["Fresnel", "Fresnel (Convolution)", "Fraunhofer", "Integral", "Fresnel Zoom","Fresnel Zoom Scaled"]
     plot_titles = ["Wavefront 1D Intensity", "Wavefront 1D Phase","Wavefront Real(Amplitude)","Wavefront Imag(Amplitude)"]
 
     propagator = Setting(4)
     magnification_x = Setting(1.0) # For Fresnel Zoom & Integral
     magnification_N = Setting(1.0) # For Integral
+    scaled_guess_R = Setting(True) # For Fresnel Zoom Scaled
+    scaled_R = Setting(1000.0) # For Fresnel Zoom Scaled
+    scaled_Rmax = Setting(100.0) # For Fresnel Zoom Scaled
+    scaled_N = Setting(100) # For Fresnel Zoom Scaled
 
     def __init__(self):
         super().__init__()
@@ -151,6 +158,28 @@ class OWWOOpticalElement1D(WofryWidget, WidgetDecorator):
                           labelWidth=260, valueType=float, orientation="horizontal")
 
 
+        # Fresnel Sacled zoom
+
+        self.zoom_scaled_box = oasysgui.widgetBox(self.tab_pro, "", addSpace=False, orientation="vertical")
+
+        oasysgui.lineEdit(self.zoom_scaled_box, self, "magnification_x", "Magnification Factor for interval",
+                          labelWidth=260, valueType=float, orientation="horizontal")
+
+        gui.comboBox(self.zoom_scaled_box, self, "scaled_guess_R", label="Guess wavefront curvature", labelWidth=260,
+                     items=["No","Yes"],
+                     callback=self.set_ScaledGuess,
+                     sendSelectedValue=False, orientation="horizontal")
+
+        self.zoom_scaled_box_1 = oasysgui.widgetBox(self.zoom_scaled_box, "", addSpace=False, orientation="vertical", height=90)
+        self.zoom_scaled_box_2 = oasysgui.widgetBox(self.zoom_scaled_box, "", addSpace=False, orientation="vertical", height=90)
+
+        oasysgui.lineEdit(self.zoom_scaled_box_1, self, "scaled_R", "Wavefront radius of curvature",
+                          labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.zoom_scaled_box_2, self, "scaled_Rmax", "Maximum wavefront radius of curvature",
+                          labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.zoom_scaled_box_2, self, "scaled_N", "Number of points for guessing curvature",
+                          labelWidth=260, valueType=int, orientation="horizontal")
+
         self.set_Propagator()
 
 
@@ -159,6 +188,12 @@ class OWWOOpticalElement1D(WofryWidget, WidgetDecorator):
         self.fraunhofer_box.setVisible(self.propagator == 2)
         self.integral_box.setVisible(self.propagator == 3)
         self.zoom_box.setVisible(self.propagator == 4)
+        self.zoom_scaled_box.setVisible(self.propagator == 5)
+        if self.propagator == 5: self.set_ScaledGuess()
+
+    def set_ScaledGuess(self):
+        self.zoom_scaled_box_1.setVisible(self.scaled_guess_R==0)
+        self.zoom_scaled_box_2.setVisible(self.scaled_guess_R==1)
 
     def draw_specific_box(self):
         # raise NotImplementedError()
@@ -173,6 +208,8 @@ class OWWOOpticalElement1D(WofryWidget, WidgetDecorator):
     def propagate_wavefront(self):
         try:
             self.progressBarInit()
+
+            sys.stdout = EmittingStream(textWritten=self.writeStdOut)
 
             if self.input_wavefront is None: raise Exception("No Input Wavefront")
 
@@ -227,6 +264,8 @@ class OWWOOpticalElement1D(WofryWidget, WidgetDecorator):
             return Integral1D.HANDLER_NAME
         elif self.propagator == 4:
             return FresnelZoom1D.HANDLER_NAME
+        elif self.propagator == 5:
+            return FresnelZoomScaling1D.HANDLER_NAME
 
     def set_additional_parameters(self, propagation_parameters):
         if self.propagator <= 2:
@@ -236,6 +275,19 @@ class OWWOOpticalElement1D(WofryWidget, WidgetDecorator):
             propagation_parameters.set_additional_parameters("magnification_N", self.magnification_N)
         elif self.propagator == 4:
             propagation_parameters.set_additional_parameters("magnification_x", self.magnification_x)
+        elif self.propagator == 5:
+            propagation_parameters.set_additional_parameters("magnification_x", self.magnification_x)
+            if self.scaled_guess_R:
+                # from srxraylib.plot.gol import plot
+                # radii,fig_of_mer = self.input_wavefront.scan_wavefront_curvature(
+                #     rmin=-self.scaled_Rmax,rmax=self.scaled_Rmax,rpoints=self.scaled_N)
+                # plot(radii,fig_of_mer)
+                radius = self.input_wavefront.guess_wavefront_curvature(
+                    rmin=-self.scaled_Rmax,rmax=self.scaled_Rmax,rpoints=self.scaled_N)
+                print("Guess wavefront curvature radius: %f m "%radius)
+            else:
+                radius = self.scaled_R
+            propagation_parameters.set_additional_parameters("radius", self.scaled_R)
 
     def get_optical_element(self):
         raise NotImplementedError()
@@ -409,383 +461,5 @@ class OWWOOpticalElementWithBoundaryShape1D(OWWOOpticalElement1D):
         else:
             raise Exception("Syned Data not correct: Empty Optical Element")
 
-# --------------------------------------------------------------
-#
-# class OWWOOpticalElementWithSurfaceShape1D(OWWOOpticalElementWithBoundaryShape):
-#
-#     # SURFACE
-#
-#     convexity = Setting(0)
-#     is_cylinder = Setting(1)
-#     cylinder_direction = Setting(0)
-#
-#     p_surface = Setting(0.0)
-#     q_surface = Setting(0.0)
-#
-#     calculate_sphere_parameter = Setting(0)
-#     calculate_ellipsoid_parameter = Setting(0)
-#     calculate_paraboloid_parameter = Setting(0)
-#     calculate_hyperboloid_parameter = Setting(0)
-#     calculate_torus_parameter = Setting(0)
-#
-#
-#     # SPHERE
-#     radius_surface = Setting(0.0)
-#
-#     # ELLIPSOID/HYPERBOLOID
-#     min_ax_surface = Setting(0.0)
-#     maj_ax_surface = Setting(0.0)
-#
-#     # PARABOLOID
-#     parabola_parameter_surface = Setting(0.0)
-#     at_infinty_surface = Setting(0.0)
-#
-#     # TORUS
-#     min_radius_surface = Setting(0.0)
-#     maj_radius_surface = Setting(0.0)
-#
-#     def draw_specific_box(self, tab_oe):
-#
-#         super().draw_specific_box()
-#
-#         self.surface_shape_box = oasysgui.widgetBox(tab_oe, "Surface Shape", addSpace=True, orientation="vertical", height=190)
-#
-#         gui.comboBox(self.surface_shape_box, self, "surface_shape", label="Surface Shape", labelWidth=350,
-#                      items=["Plane", "Sphere", "Ellipsoid", "Paraboloid", "Hyperboloid", "Toroidal"],
-#                      callback=self.set_SurfaceParameters,
-#                      sendSelectedValue=False, orientation="horizontal")
-#
-#
-#         self.plane_box = oasysgui.widgetBox(self.surface_shape_box, "", addSpace=False, orientation="vertical", height=90)
-#
-#         self.sphere_box = oasysgui.widgetBox(self.surface_shape_box, "", addSpace=False, orientation="vertical", height=90)
-#         self.ellipsoid_box = oasysgui.widgetBox(self.surface_shape_box, "", addSpace=False, orientation="vertical", height=90)
-#         self.paraboloid_box = oasysgui.widgetBox(self.surface_shape_box, "", addSpace=False, orientation="vertical", height=115)
-#         self.hyperboloid_box = oasysgui.widgetBox(self.surface_shape_box, "", addSpace=False, orientation="vertical", height=90)
-#         self.torus_box = oasysgui.widgetBox(self.surface_shape_box, "", addSpace=False, orientation="vertical", height=90)
-#
-#         # SPHERE --------------------------
-#
-#         gui.comboBox(self.sphere_box, self, "calculate_sphere_parameter", label="Sphere Shape", labelWidth=350,
-#                      items=["Manual", "Automatic"],
-#                      callback=self.set_SphereShape,
-#                      sendSelectedValue=False, orientation="horizontal")
-#
-#         self.sphere_box_1 = oasysgui.widgetBox(self.sphere_box, "", addSpace=False, orientation="vertical", height=60)
-#         self.sphere_box_2 = oasysgui.widgetBox(self.sphere_box, "", addSpace=False, orientation="vertical", height=60)
-#
-#         oasysgui.lineEdit(self.sphere_box_1, self, "radius_surface", "Radius [m]", labelWidth=260, valueType=float, orientation="horizontal")
-#
-#         oasysgui.lineEdit(self.sphere_box_2, self, "p_surface", "First Focus to O.E. Center (P) [m]", labelWidth=260, valueType=float, orientation="horizontal")
-#         oasysgui.lineEdit(self.sphere_box_2, self, "q_surface", "O.E. Center to Second Focus (Q) [m]", labelWidth=260, valueType=float, orientation="horizontal")
-#
-#
-#         # ELLIPSOID --------------------------
-#
-#         gui.comboBox(self.ellipsoid_box, self, "calculate_ellipsoid_parameter", label="Ellipsoid Shape", labelWidth=350,
-#                      items=["Manual", "Automatic"],
-#                      callback=self.set_EllipsoidShape,
-#                      sendSelectedValue=False, orientation="horizontal")
-#
-#         self.ellipsoid_box_1 = oasysgui.widgetBox(self.ellipsoid_box, "", addSpace=False, orientation="vertical", height=60)
-#         self.ellipsoid_box_2 = oasysgui.widgetBox(self.ellipsoid_box, "", addSpace=False, orientation="vertical", height=60)
-#
-#         oasysgui.lineEdit(self.ellipsoid_box_1, self, "min_ax_surface", "Minor Axis [m]", labelWidth=260, valueType=float, orientation="horizontal")
-#         oasysgui.lineEdit(self.ellipsoid_box_1, self, "maj_ax_surface", "Major Axis [m]", labelWidth=260, valueType=float, orientation="horizontal")
-#
-#         oasysgui.lineEdit(self.ellipsoid_box_2, self, "p_surface", "First Focus to O.E. Center (P) [m]", labelWidth=260, valueType=float, orientation="horizontal")
-#         oasysgui.lineEdit(self.ellipsoid_box_2, self, "q_surface", "O.E. Center to Second Focus (Q) [m]", labelWidth=260, valueType=float, orientation="horizontal")
-#
-#
-#         # PARABOLOID --------------------------
-#
-#         gui.comboBox(self.paraboloid_box, self, "calculate_paraboloid_parameter", label="Sphere Shape", labelWidth=350,
-#                      items=["Manual", "Automatic"],
-#                      callback=self.set_ParaboloidShape,
-#                      sendSelectedValue=False, orientation="horizontal")
-#
-#         self.paraboloid_box_1 = oasysgui.widgetBox(self.paraboloid_box, "", addSpace=False, orientation="vertical", height=85)
-#         self.paraboloid_box_2 = oasysgui.widgetBox(self.paraboloid_box, "", addSpace=False, orientation="vertical", height=85)
-#
-#         oasysgui.lineEdit(self.paraboloid_box_1, self, "parabola_parameter_surface", "Parabola Parameter [m]", labelWidth=260, valueType=float, orientation="horizontal")
-#
-#         oasysgui.lineEdit(self.paraboloid_box_2, self, "p_surface", "First Focus to O.E. Center (P) [m]", labelWidth=260, valueType=float, orientation="horizontal")
-#         oasysgui.lineEdit(self.paraboloid_box_2, self, "q_surface", "O.E. Center to Second Focus (Q) [m]", labelWidth=260, valueType=float, orientation="horizontal")
-#
-#         gui.comboBox(self.paraboloid_box_2, self, "at_infinty_surface", label="At infinity", labelWidth=350,
-#                      items=["Source", "Image"],
-#                      sendSelectedValue=False, orientation="horizontal")
-#
-#
-#         # HYPERBOLOID --------------------------
-#
-#         gui.comboBox(self.hyperboloid_box, self, "calculate_hyperboloid_parameter", label="Hyperboloid Shape", labelWidth=350,
-#                      items=["Manual", "Automatic"],
-#                      callback=self.set_HyperboloidShape,
-#                      sendSelectedValue=False, orientation="horizontal")
-#
-#         self.hyperboloid_box_1 = oasysgui.widgetBox(self.hyperboloid_box, "", addSpace=False, orientation="vertical", height=60)
-#         self.hyperboloid_box_2 = oasysgui.widgetBox(self.hyperboloid_box, "", addSpace=False, orientation="vertical", height=60)
-#
-#         oasysgui.lineEdit(self.hyperboloid_box_1, self, "min_ax_surface", "Minor Axis [m]", labelWidth=260, valueType=float, orientation="horizontal")
-#         oasysgui.lineEdit(self.hyperboloid_box_1, self, "maj_ax_surface", "Major Axis [m]", labelWidth=260, valueType=float, orientation="horizontal")
-#
-#         oasysgui.lineEdit(self.hyperboloid_box_2, self, "p_surface", "First Focus to O.E. Center (P) [m]", labelWidth=260, valueType=float, orientation="horizontal")
-#         oasysgui.lineEdit(self.hyperboloid_box_2, self, "q_surface", "O.E. Center to Second Focus (Q) [m]", labelWidth=260, valueType=float, orientation="horizontal")
-#
-#
-#         # TORUS --------------------------
-#
-#         gui.comboBox(self.torus_box, self, "calculate_torus_parameter", label="Torus Shape", labelWidth=350,
-#                      items=["Manual", "Automatic"],
-#                      callback=self.set_TorusShape,
-#                      sendSelectedValue=False, orientation="horizontal")
-#
-#         self.torus_box_1 = oasysgui.widgetBox(self.torus_box, "", addSpace=False, orientation="vertical", height=60)
-#         self.torus_box_2 = oasysgui.widgetBox(self.torus_box, "", addSpace=False, orientation="vertical", height=60)
-#
-#         oasysgui.lineEdit(self.torus_box_1, self, "min_radius_surface", "Minor radius [m]", labelWidth=260, valueType=float, orientation="horizontal")
-#         oasysgui.lineEdit(self.torus_box_1, self, "maj_radius_surface", "Major radius [m]", labelWidth=260, valueType=float, orientation="horizontal")
-#
-#         oasysgui.lineEdit(self.torus_box_2, self, "p_surface", "First Focus to O.E. Center (P) [m]", labelWidth=260, valueType=float, orientation="horizontal")
-#         oasysgui.lineEdit(self.torus_box_2, self, "q_surface", "O.E. Center to Second Focus (Q) [m]", labelWidth=260, valueType=float, orientation="horizontal")
-#
-#         # -----------------------------------------------------
-#         # -----------------------------------------------------
-#
-#         self.surface_orientation_box = oasysgui.widgetBox(tab_oe, "Surface Orientation", addSpace=False, orientation="vertical")
-#
-#         gui.comboBox(self.surface_orientation_box, self, "convexity", label="Convexity", labelWidth=350,
-#                      items=["Upward", "Downward"],
-#                      sendSelectedValue=False, orientation="horizontal")
-#
-#         gui.comboBox(self.surface_orientation_box, self, "is_cylinder", label="Cylinder", labelWidth=350,
-#                      items=["No", "Yes"], callback=self.set_Cylinder,
-#                      sendSelectedValue=False, orientation="horizontal")
-#
-#         self.cylinder_box_1 = oasysgui.widgetBox(self.surface_orientation_box, "", addSpace=False, orientation="vertical", height=25)
-#         self.cylinder_box_2 = oasysgui.widgetBox(self.surface_orientation_box, "", addSpace=False, orientation="vertical", height=25)
-#
-#         gui.comboBox(self.cylinder_box_1, self, "cylinder_direction", label="Cylinder Direction", labelWidth=350,
-#                      items=["Tangential", "Sagittal"],
-#                      sendSelectedValue=False, orientation="horizontal")
-#
-#         self.set_SurfaceParameters()
-#
-#     def set_SphereShape(self):
-#         self.sphere_box_1.setVisible(self.calculate_sphere_parameter==0)
-#         self.sphere_box_2.setVisible(self.calculate_sphere_parameter==1)
-#
-#     def set_EllipsoidShape(self):
-#         self.ellipsoid_box_1.setVisible(self.calculate_ellipsoid_parameter==0)
-#         self.ellipsoid_box_2.setVisible(self.calculate_ellipsoid_parameter==1)
-#
-#     def set_ParaboloidShape(self):
-#         self.paraboloid_box_1.setVisible(self.calculate_paraboloid_parameter==0)
-#         self.paraboloid_box_2.setVisible(self.calculate_paraboloid_parameter==1)
-#
-#     def set_HyperboloidShape(self):
-#         self.hyperboloid_box_1.setVisible(self.calculate_hyperboloid_parameter==0)
-#         self.hyperboloid_box_2.setVisible(self.calculate_hyperboloid_parameter==1)
-#
-#     def set_TorusShape(self):
-#         self.torus_box_1.setVisible(self.calculate_torus_parameter==0)
-#         self.torus_box_2.setVisible(self.calculate_torus_parameter==1)
-#
-#
-#     def set_Cylinder(self):
-#         self.cylinder_box_1.setVisible(self.is_cylinder==1)
-#         self.cylinder_box_2.setVisible(self.is_cylinder==0)
-#
-#     def set_SurfaceParameters(self):
-#         self.plane_box.setVisible(self.surface_shape == 0)
-#
-#         if self.surface_shape == 1 :
-#             self.sphere_box.setVisible(True)
-#             self.set_SphereShape()
-#         else:
-#             self.sphere_box.setVisible(False)
-#
-#         if self.surface_shape == 2 :
-#             self.ellipsoid_box.setVisible(True)
-#             self.set_EllipsoidShape()
-#         else:
-#             self.ellipsoid_box.setVisible(False)
-#
-#         if self.surface_shape == 3 :
-#             self.paraboloid_box.setVisible(True)
-#             self.set_ParaboloidShape()
-#         else:
-#             self.paraboloid_box.setVisible(False)
-#
-#         if self.surface_shape == 4 :
-#             self.hyperboloid_box.setVisible(True)
-#             self.set_HyperboloidShape()
-#         else:
-#             self.hyperboloid_box.setVisible(False)
-#
-#         if self.surface_shape == 5 :
-#             self.torus_box.setVisible(True)
-#             self.set_TorusShape()
-#         else:
-#             self.torus_box.setVisible(False)
-#
-#         if self.surface_shape in (1,2,3,4):
-#             self.surface_orientation_box.setVisible(True)
-#             self.set_Cylinder()
-#         else:
-#             self.surface_orientation_box.setVisible(False)
-#
-#     def get_surface_shape(self):
-#         if self.surface_shape == 0:
-#             surface_shape = Plane()
-#
-#         # SPHERE --------------------------
-#         elif self.surface_shape == 1:
-#             if self.calculate_sphere_parameter == 0:
-#                 if self.is_cylinder == 0:
-#                     surface_shape = Sphere(radius=self.radius_surface,
-#                                            convexity=self.convexity)
-#                 else:
-#                     surface_shape = SphericalCylinder(radius=self.radius_surface,
-#                                                       convexity=self.convexity,
-#                                                       cylinder_direction=self.cylinder_direction)
-#             elif self.calculate_sphere_parameter == 1:
-#                 if self.is_cylinder == 0:
-#                     surface_shape = Sphere(convexity=self.convexity)
-#                 else:
-#                     surface_shape = SphericalCylinder(convexity=self.convexity,
-#                                                       cylinder_direction=self.cylinder_direction)
-#
-#                 surface_shape.initialize_from_p_q(self.p_surface, self.q_surface, numpy.radians(90-self.angle_radial))
-#
-#                 self.radius_surface = round(surface_shape.get_radius(), 6)
-#
-#         # ELLIPSOID --------------------------
-#         elif self.surface_shape == 2:
-#             if self.calculate_ellipsoid_parameter == 0:
-#                 if self.is_cylinder == 0:
-#                     surface_shape = Ellipsoid(min_axis=self.min_ax_surface,
-#                                               maj_axis=self.maj_ax_surface,
-#                                               convexity=self.convexity)
-#                 else:
-#                     surface_shape = EllipticalCylinder(min_axis=self.min_ax_surface,
-#                                                        maj_axis=self.maj_ax_surface,
-#                                                        convexity=self.convexity,
-#                                                        cylinder_direction=self.cylinder_direction)
-#             elif self.calculate_ellipsoid_parameter == 1:
-#                 if self.is_cylinder == 0:
-#                     surface_shape = Ellipsoid(convexity=self.convexity)
-#                 else:
-#                     surface_shape = EllipticalCylinder(convexity=self.convexity,
-#                                                        cylinder_direction=self.cylinder_direction)
-#
-#                 surface_shape.initialize_from_p_q(self.p_surface, self.q_surface, numpy.radians(90-self.angle_radial))
-#
-#                 self.min_ax_surface = round(surface_shape._min_axis, 6)
-#                 self.maj_ax_surface = round(surface_shape._maj_axis, 6)
-#
-#         # PARABOLOID --------------------------
-#         elif self.surface_shape == 3:
-#             if self.calculate_paraboloid_parameter == 0:
-#                 if self.is_cylinder == 0:
-#                     surface_shape = Paraboloid(parabola_parameter=self.parabola_parameter_surface,
-#                                                convexity=self.convexity)
-#                 else:
-#                     surface_shape = ParabolicCylinder(parabola_parameter=self.parabola_parameter_surface,
-#                                                       convexity=self.convexity,
-#                                                       cylinder_direction=self.cylinder_direction)
-#             elif self.calculate_paraboloid_parameter == 1:
-#                 if self.is_cylinder == 0:
-#                     surface_shape = Paraboloid(convexity=self.convexity)
-#                 else:
-#                     surface_shape = ParabolicCylinder(convexity=self.convexity,
-#                                                     cylinder_direction=self.cylinder_direction)
-#
-#                 surface_shape.initialize_from_p_q(self.p_surface, self.q_surface, numpy.radians(90-self.angle_radial), at_infinity=self.at_infinty_surface)
-#
-#                 self.parabola_parameter_surface = round(surface_shape._parabola_parameter, 6)
-#
-#         # HYPERBOLOID --------------------------
-#         elif self.surface_shape == 4:
-#             if self.calculate_hyperboloid_parameter == 0:
-#                 if self.is_cylinder == 0:
-#                     surface_shape = Hyperboloid(min_axis=self.min_ax_surface,
-#                                                 maj_axis=self.maj_ax_surface,
-#                                                 convexity=self.convexity)
-#                 else:
-#                     surface_shape = HyperbolicCylinder(min_axis=self.min_ax_surface,
-#                                                        maj_axis=self.maj_ax_surface,
-#                                                        convexity=self.convexity,
-#                                                        cylinder_direction=self.cylinder_direction)
-#             elif self.calculate_ellipsoid_parameter == 1:
-#                 raise NotImplementedError("HYPERBOLOID, you should not be here!")
-#
-#         # TORUS --------------------------
-#         elif self.surface_shape == 5:
-#             if self.calculate_torus_parameter == 0:
-#                 surface_shape = Toroidal(min_radius=self.min_radius_surface,
-#                                       maj_radius=self.maj_radius_surface)
-#             elif self.calculate_torus_parameter == 1:
-#                 surface_shape = Toroidal()
-#
-#                 surface_shape.initialize_from_p_q(self.p_surface, self.q_surface, numpy.radians(90-self.angle_radial))
-#
-#                 self.min_radius_surface = round(surface_shape._min_radius, 6)
-#                 self.maj_radius_surface = round(surface_shape._maj_radius, 6)
-#
-#
-#         return surface_shape
-#
-#     def check_data(self):
-#         super().check_data()
-#
-#         if self.surface_shape == 1: # SPHERE
-#             if self.calculate_sphere_parameter == 0:
-#                 congruence.checkStrictlyPositiveNumber(self.radius_surface, "(Surface) Radius")
-#             elif self.calculate_sphere_parameter == 1:
-#                 congruence.checkStrictlyPositiveNumber(self.p_surface, "(Surface) P")
-#
-#         if self.surface_shape == 2: # ELLIPSOID
-#             if self.calculate_ellipsoid_parameter == 0:
-#                 congruence.checkStrictlyPositiveNumber(self.min_ax_surface, "(Surface) Minor Axis")
-#                 congruence.checkStrictlyPositiveNumber(self.maj_ax_surface, "(Surface) Major Axis")
-#             elif self.calculate_ellipsoid_parameter == 1:
-#                 congruence.checkStrictlyPositiveNumber(self.p_surface, "(Surface) P")
-#                 congruence.checkStrictlyPositiveNumber(self.q_surface, "(Surface) Q")
-#
-#                 if self.is_cylinder and self.cylinder_direction == Direction.SAGITTAL:
-#                     raise NotImplementedError("Sagittal automatic calculation is not supported, yet")
-#
-#         if self.surface_shape == 3: # PARABOLOID
-#             if self.calculate_paraboloid_parameter == 0:
-#                 congruence.checkStrictlyPositiveNumber(self.parabola_parameter_surface, "(Surface) Parabola Parameter")
-#             elif self.calculate_paraboloid_parameter == 1:
-#                 congruence.checkStrictlyPositiveNumber(self.p_surface, "(Surface) P")
-#                 congruence.checkStrictlyPositiveNumber(self.q_surface, "(Surface) Q")
-#
-#                 if self.is_cylinder and self.cylinder_direction == Direction.SAGITTAL:
-#                     raise NotImplementedError("Sagittal automatic calculation is not supported, yet")
-#
-#         if self.surface_shape == 4: # HYPERBOLOID
-#             if self.calculate_hyperboloid_parameter == 0:
-#                 congruence.checkStrictlyPositiveNumber(self.min_ax_surface, "(Surface) Minor Axis")
-#                 congruence.checkStrictlyPositiveNumber(self.maj_ax_surface, "(Surface) Major Axis")
-#             elif self.calculate_hyperboloid_parameter == 1:
-#                 raise NotImplementedError("Automatic calculation is not supported, yet")
-#
-#         if self.surface_shape == 5: # TORUS
-#             if self.calculate_torus_parameter == 0:
-#                 congruence.checkStrictlyPositiveNumber(self.min_radius_surface, "(Surface) Minor Radius")
-#                 congruence.checkStrictlyPositiveNumber(self.maj_radius_surface, "(Surface) Major Radius")
-#             elif self.calculate_torus_parameter == 1:
-#                 congruence.checkStrictlyPositiveNumber(self.p_surface, "(Surface) P")
-#                 congruence.checkStrictlyPositiveNumber(self.q_surface, "(Surface) Q")
-#
-#     def receive_specific_syned_data(self, optical_element):
-#         super().receive_specific_syned_data(optical_element)
-#
-#         #TODO: check and passage of shapes
-#
-#         raise NotImplementedError()
+
 

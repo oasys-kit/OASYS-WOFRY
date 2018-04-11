@@ -62,7 +62,8 @@ if __name__ == "__main__":
 
     a = QApplication(sys.argv)
     ow = OWWOStop1D()
-    ow.input_wavefront = GenericWavefront1D.initialize_wavefront_from_range(-0.001,0.001,500)
+    ow.input_wavefront = GenericWavefront1D.initialize_wavefront_from_range(-0.001,0.001,5000)
+    ow.input_wavefront.set_spherical_wave(-50.0)
 
     ow.show()
     a.exec_()
