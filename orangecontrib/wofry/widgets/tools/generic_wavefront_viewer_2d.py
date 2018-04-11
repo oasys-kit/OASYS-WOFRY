@@ -15,7 +15,7 @@ class GenericWavefrontViewer2D(WofryWidget):
     name = "Wavefront Viewer 2D"
     id = "WavefrontViewer2D"
     description = "Wavefront Viewer 2D"
-    icon = "icons/accumulation.png"
+    icon = "icons/wv2d.png"
     priority = 2
 
     category = ""
