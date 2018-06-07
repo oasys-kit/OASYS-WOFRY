@@ -9,7 +9,7 @@ Widgets for association rules.
 
 # Category description for the widget registry
 
-NAME = "Wofry Beamline Elements"
+NAME = "Wofry Optical Elements"
 
 DESCRIPTION = "Widgets for Wofry"
 

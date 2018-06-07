@@ -57,7 +57,7 @@ ENTRY_POINTS = {
     'oasys.addons' : ("wofry = orangecontrib.wofry", ),
     'oasys.widgets' : (
         "Wofry Wavefront Propagation = orangecontrib.wofry.widgets.wavefront_propagation",
-        "Wofry Beamline Elements = orangecontrib.wofry.widgets.beamline_elements",
+        "Wofry Optical Elements = orangecontrib.wofry.widgets.beamline_elements",
         "Wofry Tools = orangecontrib.wofry.widgets.tools",
     ),
 }
