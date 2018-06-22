@@ -29,7 +29,9 @@ class GenericWavefrontViewer2D(WofryWidget):
     plot_intensity = Setting(1)
     plot_phase = Setting(0)
     plot_csd = Setting(0)
+    plot_iterations = Setting(0)
     phase_unwrap = Setting(0)
+
 
     def __init__(self):
         super().__init__(is_automatic=False, show_view_options=False)
@@ -63,13 +65,14 @@ class GenericWavefrontViewer2D(WofryWidget):
 
 
         incremental_box = oasysgui.widgetBox(self.tab_sou, "Incremental Result", addSpace=True, orientation="horizontal", height=80)
-        gui.checkBox(incremental_box, self, "keep_result", "result")
+        gui.checkBox(incremental_box, self, "keep_result", "accumulate")
         gui.button(incremental_box, self, "Clear", callback=self.reset_accumumation)
 
-        incremental_box = oasysgui.widgetBox(self.tab_sou, "Show plots", addSpace=True, orientation="horizontal", height=80)
+        incremental_box = oasysgui.widgetBox(self.tab_sou, "Show plots", addSpace=True, orientation="vertical", height=180)
         gui.checkBox(incremental_box, self, "plot_intensity", "Plot Intensity")
         gui.checkBox(incremental_box, self, "plot_phase", "Plot Phase")
         gui.checkBox(incremental_box, self, "plot_csd", "Plot Cross spectral density")
+        gui.checkBox(incremental_box, self, "plot_iterations", "Plot Iteration intensities")
 
 
         gui.comboBox(self.tab_sou, self, "phase_unwrap",
@@ -93,7 +96,8 @@ class GenericWavefrontViewer2D(WofryWidget):
         if self.plot_csd:
             titles.append("W(x1,0,x2,0)")
             titles.append("W(0,y1,0,y2)")
-
+        if self.plot_iterations:
+            titles.append("Iterations")
 
         self.tab = []
         self.plot_canvas = []
@@ -130,6 +134,7 @@ class GenericWavefrontViewer2D(WofryWidget):
 
             Wx1x2,Wy1y2  = self.crossSpectralDensityHV()
 
+            delta = self.wavefront2D.delta()
             if self.accumulated_data is None:
                 self.accumulated_data = {}
                 self.accumulated_data["counter"] = 1
@@ -140,6 +145,7 @@ class GenericWavefrontViewer2D(WofryWidget):
                 self.accumulated_data["W_0_y1_0_y2"] = Wy1y2
                 self.accumulated_data["x"] = self.wavefront2D.get_coordinate_x()
                 self.accumulated_data["y"] = self.wavefront2D.get_coordinate_y()
+                self.accumulated_data["iteration_intensities"] = [self.wavefront2D.get_intensity().sum()*delta[0]*delta[1]]
 
             else:
                 self.accumulated_data["counter"] += 1
@@ -147,6 +153,7 @@ class GenericWavefrontViewer2D(WofryWidget):
                 self.accumulated_data["phase"] += self.wavefront2D.get_phase()
                 self.accumulated_data["W_x1_0_x2_0"] += Wx1x2
                 self.accumulated_data["W_0_y1_0_y2"] += Wy1y2
+                self.accumulated_data["iteration_intensities"].append( self.wavefront2D.get_intensity().sum()*delta[0]*delta[1])
 
             self.progressBarInit()
             self.do_plot_results(10) #refresh()
@@ -159,9 +166,11 @@ class GenericWavefrontViewer2D(WofryWidget):
 
     def do_plot_results(self, progressBarValue):
 
+
         if self.accumulated_data is None:
             return
         else:
+
             self.progressBarInit()
             self.progressBarSet(progressBarValue)
 
@@ -227,8 +236,45 @@ class GenericWavefrontViewer2D(WofryWidget):
                                  title="Cross spectral density (vertical, at x=0)",
                                  xtitle="Vertical Coordinate y1 [$\mu$m]",
                                  ytitle="Vertical Coordinate y2 [$\mu$m]")
+            if self.plot_iterations:
+                tabs_canvas_index += 1
+                x,y,txt = self.get_data_iterations()
+                self.plot_data1D(x,y,
+                                 progressBarValue=progressBarValue+10,
+                                 tabs_canvas_index=tabs_canvas_index,
+                                 plot_canvas_index=0,
+                                 title="Intensity of beam",
+                                 xtitle="iteration index",
+                                 ytitle="intensity [arbitrary units]",
+                                 calculate_fwhm=False,
+                                 xrange=[-1,1+self.accumulated_data["counter"]],
+                                 symbol='o')
+
+
+                self.writeStdOut(txt)
+
 
             self.progressBarFinished()
+
+    def get_data_iterations(self):
+
+
+        x = numpy.arange(self.accumulated_data["counter"])
+        y = numpy.array(self.accumulated_data["iteration_intensities"])
+
+        txt = "#########################################################\n"
+        txt += "%20s %20s %20s %20s\n"%("iteration","intensity","intensity/I0","intensity/TotalInt")
+        for i,xi in enumerate(x):
+            txt += "%20d  %20.5g  %20.5f %20.5f \n"%(xi,y[i],y[i]/y[0],y[i]/y.sum())
+
+        txt += "  Total intensity: %g\n"%(y.sum())
+        txt += "  Mean intensity: %g\n"%(y.mean())
+        txt += "  Standard deviation intensity: %g\n"%(y.std())
+
+
+        txt += "\n"
+
+        return x,y,txt
 
     def reset_accumumation(self):
 

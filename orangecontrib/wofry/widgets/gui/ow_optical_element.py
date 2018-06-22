@@ -26,6 +26,8 @@ from wofry.propagator.propagators2D.fresnel_zoom_xy import FresnelZoomXY2D
 
 from orangecontrib.wofry.widgets.gui.ow_wofry_widget import WofryWidget
 
+from oasys.util.oasys_util import TriggerIn
+
 def initialize_default_propagator_2D():
     propagator = PropagationManager.Instance()
 
@@ -50,7 +52,11 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
     outputs = [{"name":"GenericWavefront2D",
                 "type":GenericWavefront2D,
                 "doc":"GenericWavefront2D",
-                "id":"GenericWavefront2D"}]
+                "id":"GenericWavefront2D"},
+               {"name":"Trigger",
+                "type": TriggerIn,
+                "doc":"Feedback signal to start a new beam simulation",
+                "id":"Trigger"}]
 
     inputs = [("GenericWavefront2D", GenericWavefront2D, "set_input"),
               WidgetDecorator.syned_input_data()[0]]
@@ -224,6 +230,8 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
             self.progressBarFinished()
 
             self.send("GenericWavefront2D", output_wavefront)
+            self.send("Trigger", TriggerIn(new_object=True))
+
         except Exception as e:
             QMessageBox.critical(self, "Error", str(e.args[0]), QMessageBox.Ok)
 

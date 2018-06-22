@@ -99,69 +99,71 @@ class WofryWidget(AutomaticWidget):
         raise NotImplementedError()
 
     def plot_data1D(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="",
-                   log_x=False, log_y=False, color='blue', replace=True, control=False, calculate_fwhm=True):
+                    log_x=False, log_y=False, color='blue', replace=True, control=False, calculate_fwhm=True,
+                    xrange=None, yrange=None, symbol=''):
 
-        if self.plot_canvas[plot_canvas_index] is None:
-            self.plot_canvas[plot_canvas_index] = oasysgui.plotWindow(parent=None,
-                                                                      backend=None,
-                                                                      resetzoom=True,
-                                                                      autoScale=False,
-                                                                      logScale=True,
-                                                                      grid=True,
-                                                                      curveStyle=True,
-                                                                      colormap=False,
-                                                                      aspectRatio=False,
-                                                                      yInverted=False,
-                                                                      copy=True,
-                                                                      save=True,
-                                                                      print_=True,
-                                                                      control=control,
-                                                                      position=True,
-                                                                      roi=False,
-                                                                      mask=False,
-                                                                      fit=False)
+        if tabs_canvas_index is None: tabs_canvas_index = 0 #back compatibility?
 
 
-            self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
-            self.plot_canvas[plot_canvas_index].setActiveCurveColor(color='blue')
-            self.plot_canvas[plot_canvas_index].setGraphXLabel(xtitle)
-            self.plot_canvas[plot_canvas_index].setGraphYLabel(ytitle)
+        self.tab[tabs_canvas_index].layout().removeItem(self.tab[tabs_canvas_index].layout().itemAt(0))
+
+        self.plot_canvas[plot_canvas_index] = oasysgui.plotWindow(parent=None,
+                                                                  backend=None,
+                                                                  resetzoom=True,
+                                                                  autoScale=False,
+                                                                  logScale=True,
+                                                                  grid=True,
+                                                                  curveStyle=True,
+                                                                  colormap=False,
+                                                                  aspectRatio=False,
+                                                                  yInverted=False,
+                                                                  copy=True,
+                                                                  save=True,
+                                                                  print_=True,
+                                                                  control=control,
+                                                                  position=True,
+                                                                  roi=False,
+                                                                  mask=False,
+                                                                  fit=False)
 
 
-            # ALLOW FIT BUTTON HERE
-            self.plot_canvas[plot_canvas_index].fitAction.setVisible(True)
+        self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
+        self.plot_canvas[plot_canvas_index].setActiveCurveColor(color='blue')
+        self.plot_canvas[plot_canvas_index].setGraphXLabel(xtitle)
+        self.plot_canvas[plot_canvas_index].setGraphYLabel(ytitle)
 
-            # overwrite FWHM and peak values
-            if calculate_fwhm:
-                try:
-                    t = numpy.where(y>=max(y)*0.5)
-                    x_left,x_right =  x[t[0][0]], x[t[0][-1]]
 
-                    self.plot_canvas[plot_canvas_index].addMarker(x_left, 0.5*y.max(), legend="G1",
-                                                                  text="FWHM=%5.2f"%(numpy.abs(x_right-x_left)),
-                                                                  color="pink",selectable=False, draggable=False,
-                                                                  symbol="+", constraint=None)
-                    self.plot_canvas[plot_canvas_index].addMarker(x_right, 0.5*y.max(), legend="G2", text=None, color="pink",
-                                                                  selectable=False, draggable=False, symbol="+", constraint=None)
-                except:
-                    pass
 
-            # PEAK
-            # index_ymax = numpy.argmax(y)
-            # self.plot_canvas[plot_canvas_index].addMarker(x[index_ymax], y[index_ymax], legend="G3",
-            #                                               text=None, color="pink",
-            #                                               selectable=False, draggable=False, symbol="+", constraint=None)
-            # self.plot_canvas[plot_canvas_index].addMarker(x[index_ymax], y[index_ymax]-0.05, legend="G4",
-            #                                               text="Peak=%5.2f"%(y[index_ymax]), color="pink",
-            #                                               selectable=False, draggable=False, symbol=None, constraint=None)
+        # ALLOW FIT BUTTON HERE
+        self.plot_canvas[plot_canvas_index].fitAction.setVisible(True)
 
-            #
-            self.tab[tabs_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
+        # overwrite FWHM and peak values
+        if calculate_fwhm:
+            try:
+                t = numpy.where(y>=max(y)*0.5)
+                x_left,x_right =  x[t[0][0]], x[t[0][-1]]
 
-        WofryWidget.plot_histo(self.plot_canvas[plot_canvas_index], x, y, title, xtitle, ytitle, color, replace)
+                self.plot_canvas[plot_canvas_index].addMarker(x_left, 0.5*y.max(), legend="G1",
+                                                              text="FWHM=%5.2f"%(numpy.abs(x_right-x_left)),
+                                                              color="pink",selectable=False, draggable=False,
+                                                              symbol="+", constraint=None)
+                self.plot_canvas[plot_canvas_index].addMarker(x_right, 0.5*y.max(), legend="G2", text=None, color="pink",
+                                                              selectable=False, draggable=False, symbol="+", constraint=None)
+            except:
+                pass
+
+        self.tab[tabs_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
+
+        WofryWidget.plot_histo(self.plot_canvas[plot_canvas_index], x, y, title, xtitle, ytitle, color, replace, symbol=symbol)
 
         self.plot_canvas[plot_canvas_index].setXAxisLogarithmic(log_x)
         self.plot_canvas[plot_canvas_index].setYAxisLogarithmic(log_y)
+
+
+        if xrange is not None:
+            self.plot_canvas[plot_canvas_index].setGraphXLimits(xrange[0],xrange[1])
+        if yrange is not None:
+            self.plot_canvas[plot_canvas_index].setGraphYLimits(yrange[0],yrange[1])
 
         if min(y) < 0:
             if log_y:
@@ -236,11 +238,11 @@ class WofryWidget(AutomaticWidget):
         self.progressBarSet(progressBarValue)
 
     @classmethod
-    def plot_histo(cls, plot_window, x, y, title, xtitle, ytitle, color='blue', replace=True):
+    def plot_histo(cls, plot_window, x, y, title, xtitle, ytitle, color='blue', replace=True, symbol=''):
         import matplotlib
         matplotlib.rcParams['axes.formatter.useoffset']='False'
 
-        plot_window.addCurve(x, y, title, symbol='', color=color, xlabel=xtitle, ylabel=ytitle, replace=replace) #'+', '^', ','
+        plot_window.addCurve(x, y, title, symbol=symbol, color=color, xlabel=xtitle, ylabel=ytitle, replace=replace) #'+', '^', ','
 
         if not xtitle is None: plot_window.setGraphXLabel(xtitle)
         if not ytitle is None: plot_window.setGraphYLabel(ytitle)
