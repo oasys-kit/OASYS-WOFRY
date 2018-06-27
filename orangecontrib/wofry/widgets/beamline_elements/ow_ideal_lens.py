@@ -16,8 +16,8 @@ class OWWOIdealLens(OWWOOpticalElement):
     icon = "icons/ideal_lens.png"
     priority = 43
 
-    focal_x = Setting(0.0)
-    focal_y = Setting(0.0)
+    focal_x = Setting(1.0)
+    focal_y = Setting(1.0)
 
     def __init__(self):
         super().__init__()
@@ -35,6 +35,14 @@ class OWWOIdealLens(OWWOOpticalElement):
                            focal_x=self.focal_x,
                            focal_y=self.focal_y)
 
+    def get_optical_element_python_code(self):
+        txt  = ""
+        txt += "\nfrom wofry.beamline.optical_elements.ideal_elements.lens import WOIdealLens"
+        txt += "\n"
+        txt += "\noptical_element = WOIdealLens(name='%s',focal_x=%f,focal_y=%f)"%(self.oe_name,self.focal_x,self.focal_y)
+        txt += "\n"
+        return txt
+
     def check_data(self):
         super().check_data()
 
@@ -50,3 +58,16 @@ class OWWOIdealLens(OWWOOpticalElement):
                 raise Exception("Syned Data not correct: Optical Element is not a Slit")
         else:
             raise Exception("Syned Data not correct: Empty Optical Element")
+
+if __name__ == "__main__":
+    import sys
+    from PyQt5.QtWidgets import QApplication
+    from wofry.propagator.wavefront2D.generic_wavefront import GenericWavefront2D
+
+    a = QApplication(sys.argv)
+    ow = OWWOIdealLens()
+    ow.input_wavefront = GenericWavefront2D.initialize_wavefront_from_range(-0.002,0.002,-0.001,0.001,(200,200))
+
+    ow.show()
+    a.exec_()
+    ow.saveSettings()

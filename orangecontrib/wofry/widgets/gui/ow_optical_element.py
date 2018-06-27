@@ -232,6 +232,12 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
             self.send("GenericWavefront2D", output_wavefront)
             self.send("Trigger", TriggerIn(new_object=True))
 
+
+            try:
+                python_code = self.propagate_python_code()
+                self.writeStdOut(python_code)
+            except:
+                pass
         except Exception as e:
             QMessageBox.critical(self, "Error", str(e.args[0]), QMessageBox.Ok)
 
@@ -239,6 +245,81 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
             self.progressBarFinished()
 
             raise e
+
+    def propagate_python_code(self,write_wavefront_template=True):
+        txt = "\n\n\n"
+        txt += "\n\n#"
+        txt += "\n# ===== Example of python code to create propagate current element ====="
+        txt += "\n#"
+
+        txt += "\n\n#"
+        txt += "\n# Import section"
+        txt += "\n#"
+        txt += "\nimport numpy"
+        txt += "\nfrom wofry.propagator.propagator import PropagationManager, PropagationElements, PropagationParameters"
+        txt += "\nfrom syned.beamline.beamline_element import BeamlineElement"
+        txt += "\nfrom syned.beamline.element_coordinates import ElementCoordinates"
+        txt += "\nfrom wofry.propagator.propagators2D.fresnel_zoom_xy import FresnelZoomXY2D"
+
+
+        if write_wavefront_template:
+            txt += "\n\n#"
+            txt += "\n# create/import your input_wavefront\n#"
+            txt += "\n#"
+            txt += "\nfrom wofry.propagator.wavefront2D.generic_wavefront import GenericWavefront2D"
+            txt += "\ninput_wavefront = GenericWavefront2D.initialize_wavefront_from_range(-10e-6,10e-6,-100e-6,100e-6,(200,100),1e-10)"
+            txt += "\n\n"
+
+
+        txt += "\n\n#"
+        txt += "\n# info on current oe\n#"
+        txt += "\n#"
+        txt_info = self.get_optical_element().info()
+        lines = txt_info.split("\n")
+
+        for line in lines:
+            txt += "\n#"+line
+
+        txt += "\n\n#"
+        txt += "\n# define current oe"
+        txt += "\n#"
+
+        txt += self.get_optical_element_python_code()
+
+
+        txt += "\n#"
+        txt += "\n# propagating\n#"
+        txt += "\n#"
+
+        txt += "\npropagation_elements = PropagationElements()"
+        txt += "\nbeamline_element = BeamlineElement(optical_element=optical_element,"
+        txt += "coordinates=ElementCoordinates(p=%f,"%(self.p)
+        txt += "q=%f,"%(self.q)
+        txt += "angle_radial=numpy.radians(%f),"%(self.angle_radial)
+        txt += "angle_azimuthal=numpy.radians(%f)))"%(self.angle_azimuthal)
+        txt += "\npropagation_elements.add_beamline_element(beamline_element)"
+        txt += "\npropagation_parameters = PropagationParameters(wavefront=input_wavefront.duplicate(),"
+        txt += "propagation_elements = propagation_elements)"
+        txt += "\n#self.set_additional_parameters(propagation_parameters)"
+
+        txt += "\n#"
+        txt += "\npropagation_parameters.set_additional_parameters('shift_half_pixel', 1)"
+        txt += "\npropagation_parameters.set_additional_parameters('magnification_x', %f)"%(self.magnification_x)
+        txt += "\npropagation_parameters.set_additional_parameters('magnification_y', %f)"%(self.magnification_y)
+
+        txt += "\n#"
+        txt += "\npropagator = PropagationManager.Instance()"
+        txt += "\ntry:"
+        txt += "\n    propagator.add_propagator(FresnelZoomXY2D())"
+        txt += "\nexcept:"
+        txt += "\n    pass"
+        txt += "\noutput_wavefront = propagator.do_propagation(propagation_parameters=propagation_parameters,"
+        txt += "handler_name='FRESNEL_ZOOM_XY_2D')"
+
+
+
+
+        return (txt)
 
     def get_handler_name(self):
         if self.propagator == 0:
@@ -293,34 +374,37 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
             tab.setFixedWidth(self.IMAGE_WIDTH)
 
     def do_plot_results(self, progressBarValue=80):
-        if not self.wavefront_to_plot is None:
 
-            self.progressBarSet(progressBarValue)
+        if not self.view_type == 0:
+            if not self.wavefront_to_plot is None:
 
-            titles = ["Wavefront 2D Intensity","Wavefront 2D Phase"]
 
-            self.plot_data2D(data2D=self.wavefront_to_plot.get_intensity(),
+                self.progressBarSet(progressBarValue)
+
+                titles = ["Wavefront 2D Intensity","Wavefront 2D Phase"]
+
+                self.plot_data2D(data2D=self.wavefront_to_plot.get_intensity(),
+                                 dataX=1e6*self.wavefront_to_plot.get_coordinate_x(),
+                                 dataY=1e6*self.wavefront_to_plot.get_coordinate_y(),
+                                 progressBarValue=progressBarValue,
+                                 tabs_canvas_index=0,
+                                 plot_canvas_index=0,
+                                 title=titles[0],
+                                 xtitle="Horizontal [$\mu$m] ( %d pixels)"%(self.wavefront_to_plot.get_coordinate_x().size),
+                                 ytitle="Vertical [$\mu$m] ( %d pixels)"%(self.wavefront_to_plot.get_coordinate_y().size))
+
+
+                self.plot_data2D(data2D=self.wavefront_to_plot.get_phase(from_minimum_intensity=0.1),
                              dataX=1e6*self.wavefront_to_plot.get_coordinate_x(),
                              dataY=1e6*self.wavefront_to_plot.get_coordinate_y(),
                              progressBarValue=progressBarValue,
-                             tabs_canvas_index=0,
-                             plot_canvas_index=0,
-                             title=titles[0],
+                             tabs_canvas_index=1,
+                             plot_canvas_index=1,
+                             title=titles[1],
                              xtitle="Horizontal [$\mu$m] ( %d pixels)"%(self.wavefront_to_plot.get_coordinate_x().size),
                              ytitle="Vertical [$\mu$m] ( %d pixels)"%(self.wavefront_to_plot.get_coordinate_y().size))
 
-
-            self.plot_data2D(data2D=self.wavefront_to_plot.get_phase(from_minimum_intensity=0.1),
-                         dataX=1e6*self.wavefront_to_plot.get_coordinate_x(),
-                         dataY=1e6*self.wavefront_to_plot.get_coordinate_y(),
-                         progressBarValue=progressBarValue,
-                         tabs_canvas_index=1,
-                         plot_canvas_index=1,
-                         title=titles[1],
-                         xtitle="Horizontal [$\mu$m] ( %d pixels)"%(self.wavefront_to_plot.get_coordinate_x().size),
-                         ytitle="Vertical [$\mu$m] ( %d pixels)"%(self.wavefront_to_plot.get_coordinate_y().size))
-
-            self.progressBarFinished()
+                self.progressBarFinished()
 
     def receive_syned_data(self, data):
         if not data is None:
@@ -417,6 +501,32 @@ class OWWOOpticalElementWithBoundaryShape(OWWOOpticalElement):
                                      maj_ax_top=0.5*self.maj_ax + self.vertical_shift)
 
         return boundary_shape
+
+    def get_boundary_shape_python_code(self):
+        txt = ""
+        if self.shape == 0:
+            txt += "\nfrom syned.beamline.shape import Rectangle"
+            txt += "\nboundary_shape = Rectangle(x_left=%f,"%(-0.5*self.width + self.horizontal_shift)
+            txt += "x_right=%f,"%(0.5*self.width + self.horizontal_shift)
+            txt += "y_bottom=%f,"%(-0.5*self.height + self.vertical_shift)
+            txt += "y_top=%f)"%(0.5*self.height + self.vertical_shift)
+
+        elif self.shape == 1:
+            txt += "\nfrom syned.beamline.shape import Circle\n"
+            txt += "\nboundary_shape = Circle( %f,"%(self.radius)
+            txt += "                         x_center=%f,"%(self.horizontal_shift)
+            txt += "                         y_center=%f)"%(self.vertical_shift)
+
+        elif self.shape == 2:
+            txt += "\nfrom syned.beamline.shape import Ellipse\n"
+            txt += "\nboundary_shape = Ellipse(min_ax_left=%f,"%(-0.5*self.min_ax + self.horizontal_shift)
+            txt += "                         min_ax_right=%f,"%(0.5*self.min_ax + self.horizontal_shift)
+            txt += "                         maj_ax_bottom=%f,"%(-0.5*self.maj_ax + self.vertical_shift)
+            txt += "                         maj_ax_top=%f)"%(0.5*self.maj_ax + self.vertical_shift)
+
+        return txt
+
+
 
     def check_data(self):
         super().check_data()

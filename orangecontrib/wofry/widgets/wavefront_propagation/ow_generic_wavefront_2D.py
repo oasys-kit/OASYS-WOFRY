@@ -348,6 +348,12 @@ class OWGenericWavefront2D(WofryWidget):
             self.initializeTabs()
             self.plot_results()
 
+            try:
+                python_code = self.generate_python_code()
+                self.writeStdOut(python_code)
+            except:
+                pass
+
             self.send("GenericWavefront2D", self.wavefront2D)
         except Exception as exception:
             QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)
@@ -355,6 +361,44 @@ class OWGenericWavefront2D(WofryWidget):
             #raise exception
 
             self.progressBarFinished()
+
+    def generate_python_code(self):
+
+        txt = ""
+
+        txt += "\n\n#"
+        txt += "\n# create input_wavefront\n#"
+        txt += "\n#"
+        txt += "\nfrom wofry.propagator.wavefront2D.generic_wavefront import GenericWavefront2D"
+
+        if self.initialize_from == 0:
+            txt += "\ninput_wavefront = GenericWavefront2D.initialize_wavefront_from_range(x_min=%f,x_max=%f,y_min=%f,y_max=%f,number_of_points=(%d,%d))"%\
+            (self.range_from_h,self.range_to_h,self.range_from_v,self.range_to_v,self.number_of_points_h, self.number_of_points_v)
+
+        else:
+            txt += "\ninput_wavefront = GenericWavefront2D.initialize_wavefront_from_steps(x_start=%f, x_step=%f,y_start=%f,y_step=%f,"+\
+                   "number_of_points=(%d,%d))"%\
+                   (self.steps_start_h,self.steps_step_h,self.steps_start_v,self.steps_step_v,self.number_of_points_h,self.number_of_points_v)
+
+        if self.units == 0:
+            txt += "\ninput_wavefront.set_photon_energy(%g)"%(self.energy)
+        else:
+            txt += "\ninput_wavefront.set_wavelength(%g)"%(self.wavelength)
+
+        if self.kind_of_wave == 0: #plane
+            if self.initialize_amplitude == 0:
+                txt += "\ninput_wavefront.set_plane_wave_from_complex_amplitude(complex_amplitude=complex(%g,%g))"%(self.complex_amplitude_re,self.complex_amplitude_im)
+            else:
+                txt += "\ninput_wavefront.set_plane_wave_from_amplitude_and_phase(amplitude=%g,phase=%g)"%(self.amplitude,self.phase)
+        elif self.kind_of_wave == 1: # spheric
+            txt += "\ninput_wavefront.set_spherical_wave(radius=%g,complex_amplitude=complex(%g, %g))"%(self.radius,self.complex_amplitude_re,self.complex_amplitude_im)
+        elif self.kind_of_wave == 2: # gaussian
+            txt += "\nwavefront2D.set_gaussian(sigma_x=%g,sigma_y=%g,amplitude=%g )"%(self.gaussian_sigma_h,self.gaussian_sigma_v,self.gaussian_amplitude)
+        elif self.kind_of_wave == 3: # g.s.m.
+            txt += "\nwavefront2D.set_gaussian_hermite_mode(sigma_x=%g,sigma_y=%g,amplitude=%g,nx=%d,ny=%d)"%\
+                   (self.gaussian_sigma_h,self.gaussian_sigma_v,self.gaussian_amplitude,self.gaussian_mode_h,self.gaussian_mode_v)
+
+        return txt
 
     def do_plot_results(self, progressBarValue):
         if not self.wavefront2D is None:
@@ -377,3 +421,16 @@ class OWGenericWavefront2D(WofryWidget):
             self.plot_canvas[0].resetZoom()
 
             self.progressBarFinished()
+
+
+if __name__ == "__main__":
+    import sys
+    from PyQt5.QtWidgets import QApplication
+    from wofry.propagator.wavefront2D.generic_wavefront import GenericWavefront2D
+
+    a = QApplication(sys.argv)
+    ow = OWGenericWavefront2D()
+
+    ow.show()
+    a.exec_()
+    ow.saveSettings()
