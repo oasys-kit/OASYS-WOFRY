@@ -1,22 +1,22 @@
 from orangewidget.settings import Setting
-from orangecontrib.wofry.widgets.gui.ow_optical_element import OWWOOpticalElementWithBoundaryShape
+from orangecontrib.wofry.widgets.gui.ow_optical_element import OWWOOpticalElementWithDoubleBoundaryShape
 
 from syned.beamline.optical_elements.absorbers.slit import Slit
 
 from wofry.beamline.optical_elements.absorbers.slit import WOSlit
 
-class OWWOSlit(OWWOOpticalElementWithBoundaryShape):
+class OWWODoubleSlit(OWWOOpticalElementWithDoubleBoundaryShape):
 
-    name = "Slit"
-    description = "Wofry: Slit"
-    icon = "icons/slit.png"
-    priority = 41
+    name = "DoubleSlit"
+    description = "Wofry: DoubleSlit"
+    icon = "icons/double_slit.png"
+    priority = 42
 
-    horizontal_shift = Setting(0.0)
-    vertical_shift = Setting(0.0)
-
-    width = Setting(1e-3)
-    height = Setting(1e-4)
+    # horizontal_shift = Setting(0.0)
+    # vertical_shift = Setting(0.0)
+    #
+    # width = Setting(1e-3)
+    # height = Setting(1e-4)
 
     def __init__(self):
         super().__init__()
@@ -46,10 +46,34 @@ if __name__ == "__main__":
     from wofry.propagator.wavefront2D.generic_wavefront import GenericWavefront2D
 
     a = QApplication(sys.argv)
-    ow = OWWOSlit()
-    ow.input_wavefront = GenericWavefront2D.initialize_wavefront_from_range(-0.002,0.002,-0.001,0.001,(200,200))
+    ow = OWWODoubleSlit()
+    ow.input_wavefront = GenericWavefront2D.initialize_wavefront_from_range(-0.0003,0.0003,-0.0001,0.0001,(1000,500))
     ca = numpy.ones(ow.input_wavefront.size())
     ow.input_wavefront.set_complex_amplitude(ca+0j)
+
+
+    ow.horizontal_shift = -50e-6
+    ow.vertical_shift = -25e-6
+
+    ow.width = 5e-6
+    ow.height = 5e-6
+
+    ow.radius = 5e-6
+
+    ow.min_ax = 5e-6
+    ow.maj_ax = 5e-6
+
+    # the same for patch 2
+    ow.horizontal_shift2 = 50e-6
+    ow.vertical_shift2 = 25e-6
+
+    ow.width2 = 5e-6
+    ow.height2 = 5e-6
+
+    ow.radius2 = 5e-6
+
+    ow.min_ax2 = 5e-6
+    ow.maj_ax2 = 5e-6
 
     # from srxraylib.plot.gol import plot_image
     # plot_image(ow.input_wavefront.get_intensity())

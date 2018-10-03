@@ -14,7 +14,7 @@ from oasys.widgets.gui import ConfirmDialog
 from syned.widget.widget_decorator import WidgetDecorator
 from syned.beamline.element_coordinates import ElementCoordinates
 from syned.beamline.beamline_element import BeamlineElement
-from syned.beamline.shape import *
+from syned.beamline.shape import Ellipse,Circle,Rectangle,DoubleEllipse,DoubleCircle,DoubleRectangle
 
 from wofry.propagator.propagator import PropagationManager, PropagationElements, PropagationParameters
 from wofry.propagator.wavefront2D.generic_wavefront import GenericWavefront2D
@@ -219,6 +219,7 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
 
             propagator = PropagationManager.Instance()
 
+
             output_wavefront = propagator.do_propagation(propagation_parameters=propagation_parameters,
                                                          handler_name=self.get_handler_name())
 
@@ -228,6 +229,7 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
             self.initializeTabs()
             self.do_plot_results()
             self.progressBarFinished()
+
 
             self.send("GenericWavefront2D", output_wavefront)
             self.send("Trigger", TriggerIn(new_object=True))
@@ -293,13 +295,13 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
 
         txt += "\npropagation_elements = PropagationElements()"
         txt += "\nbeamline_element = BeamlineElement(optical_element=optical_element,"
-        txt += "coordinates=ElementCoordinates(p=%f,"%(self.p)
-        txt += "q=%f,"%(self.q)
-        txt += "angle_radial=numpy.radians(%f),"%(self.angle_radial)
-        txt += "angle_azimuthal=numpy.radians(%f)))"%(self.angle_azimuthal)
+        txt += "    coordinates=ElementCoordinates(p=%f,"%(self.p)
+        txt += "    q=%f,"%(self.q)
+        txt += "    angle_radial=numpy.radians(%f),"%(self.angle_radial)
+        txt += "    angle_azimuthal=numpy.radians(%f)))"%(self.angle_azimuthal)
         txt += "\npropagation_elements.add_beamline_element(beamline_element)"
         txt += "\npropagation_parameters = PropagationParameters(wavefront=input_wavefront.duplicate(),"
-        txt += "propagation_elements = propagation_elements)"
+        txt += "    propagation_elements = propagation_elements)"
         txt += "\n#self.set_additional_parameters(propagation_parameters)"
 
         txt += "\n#"
@@ -314,7 +316,7 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
         txt += "\nexcept:"
         txt += "\n    pass"
         txt += "\noutput_wavefront = propagator.do_propagation(propagation_parameters=propagation_parameters,"
-        txt += "handler_name='FRESNEL_ZOOM_XY_2D')"
+        txt += "    handler_name='FRESNEL_ZOOM_XY_2D')"
 
 
 
@@ -473,8 +475,8 @@ class OWWOOpticalElementWithBoundaryShape(OWWOOpticalElement):
 
         self.ellipse_box = oasysgui.widgetBox(self.shape_box, "", addSpace=False, orientation="vertical", height=60)
 
-        oasysgui.lineEdit(self.ellipse_box, self, "min_ax", "Minor Axis [m]", labelWidth=260, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.ellipse_box, self, "maj_ax", "Major Axis [m]", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.ellipse_box, self, "min_ax", "Axis a [m]", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.ellipse_box, self, "maj_ax", "Axis b [m]", labelWidth=260, valueType=float, orientation="horizontal")
 
         self.set_Shape()
 
@@ -509,20 +511,20 @@ class OWWOOpticalElementWithBoundaryShape(OWWOOpticalElement):
             txt += "\nboundary_shape = Rectangle(x_left=%f,"%(-0.5*self.width + self.horizontal_shift)
             txt += "x_right=%f,"%(0.5*self.width + self.horizontal_shift)
             txt += "y_bottom=%f,"%(-0.5*self.height + self.vertical_shift)
-            txt += "y_top=%f)"%(0.5*self.height + self.vertical_shift)
+            txt += "y_top=%f)\n"%(0.5*self.height + self.vertical_shift)
 
         elif self.shape == 1:
             txt += "\nfrom syned.beamline.shape import Circle\n"
-            txt += "\nboundary_shape = Circle( %f,"%(self.radius)
-            txt += "                         x_center=%f,"%(self.horizontal_shift)
-            txt += "                         y_center=%f)"%(self.vertical_shift)
+            txt += "\nboundary_shape = Circle( %f,\n"%(self.radius)
+            txt += "                         x_center=%f,\n"%(self.horizontal_shift)
+            txt += "                         y_center=%f)\n"%(self.vertical_shift)
 
         elif self.shape == 2:
             txt += "\nfrom syned.beamline.shape import Ellipse\n"
-            txt += "\nboundary_shape = Ellipse(min_ax_left=%f,"%(-0.5*self.min_ax + self.horizontal_shift)
-            txt += "                         min_ax_right=%f,"%(0.5*self.min_ax + self.horizontal_shift)
-            txt += "                         maj_ax_bottom=%f,"%(-0.5*self.maj_ax + self.vertical_shift)
-            txt += "                         maj_ax_top=%f)"%(0.5*self.maj_ax + self.vertical_shift)
+            txt += "\nboundary_shape = Ellipse(a_axis_min=%f,\n"%(-0.5*self.min_ax + self.horizontal_shift)
+            txt += "                         a_axis_max=%f,\n"%(0.5*self.min_ax + self.horizontal_shift)
+            txt += "                         b_axis_min=%f,\n"%(-0.5*self.maj_ax + self.vertical_shift)
+            txt += "                         b_axis_max=%f)\n"%(0.5*self.maj_ax + self.vertical_shift)
 
         return txt
 
@@ -574,6 +576,195 @@ class OWWOOpticalElementWithBoundaryShape(OWWOOpticalElement):
             raise Exception("Syned Data not correct: Empty Optical Element")
 
 # --------------------------------------------------------------
+
+class OWWOOpticalElementWithDoubleBoundaryShape(OWWOOpticalElement):
+    # BOUNDARY
+
+    horizontal_shift = Setting(-500e-6)
+    vertical_shift = Setting(-400e-6)
+
+    width = Setting(1e-3)
+    height = Setting(1e-4)
+
+    radius = Setting(50e-6)
+
+    min_ax = Setting(1e-3)
+    maj_ax = Setting(1e-4)
+
+    # the same for patch 2
+    horizontal_shift2 = Setting(500e-6)
+    vertical_shift2 = Setting(400e-6)
+
+    width2 = Setting(1e-3)
+    height2 = Setting(1e-4)
+
+    radius2 = Setting(30e-6)
+
+    min_ax2 = Setting(1e-3)
+    maj_ax2 = Setting(1e-4)
+
+    def draw_specific_box(self):
+
+        self.shape_box = oasysgui.widgetBox(self.tab_bas, "Boundary Shape", addSpace=True, orientation="vertical")
+
+        gui.comboBox(self.shape_box, self, "shape", label="Boundary Shape", labelWidth=350,
+                     items=["Rectangle", "Circle", "Ellipse"],
+                     callback=self.set_Shape,
+                     sendSelectedValue=False, orientation="horizontal")
+
+        oasysgui.lineEdit(self.shape_box, self, "horizontal_shift", "Horizontal Shift Patch 1[m]", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.shape_box, self, "vertical_shift", "Vertical Shift Patch 1 [m]", labelWidth=260, valueType=float, orientation="horizontal")
+
+        oasysgui.lineEdit(self.shape_box, self, "horizontal_shift2", "Horizontal Shift Patch 2[m]", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.shape_box, self, "vertical_shift2", "Vertical Shift Patch 2[m]", labelWidth=260, valueType=float, orientation="horizontal")
+
+
+        self.rectangle_box = oasysgui.widgetBox(self.shape_box, "", addSpace=False, orientation="vertical", height=120)
+
+        oasysgui.lineEdit(self.rectangle_box, self, "width", "Width Patch 1[m]", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.rectangle_box, self, "height", "Height Patch 1[m]", labelWidth=260, valueType=float, orientation="horizontal")
+
+        oasysgui.lineEdit(self.rectangle_box, self, "width2", "Width Patch 2[m]", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.rectangle_box, self, "height2", "Height Patch 2[m]", labelWidth=260, valueType=float, orientation="horizontal")
+
+
+        self.circle_box = oasysgui.widgetBox(self.shape_box, "", addSpace=False, orientation="vertical", height=60)
+
+        oasysgui.lineEdit(self.circle_box, self, "radius", "Radius Patch 1 [m]", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.circle_box, self, "radius2", "Radius Patch 2 [m]", labelWidth=260, valueType=float, orientation="horizontal")
+
+        self.ellipse_box = oasysgui.widgetBox(self.shape_box, "", addSpace=False, orientation="vertical", height=120)
+
+        oasysgui.lineEdit(self.ellipse_box, self, "min_ax", "Axis a Patch 1 [m]", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.ellipse_box, self, "maj_ax", "Axis b Patch 1 [m]", labelWidth=260, valueType=float, orientation="horizontal")
+
+        oasysgui.lineEdit(self.ellipse_box, self, "min_ax2", "Axis a Patch 2 [m]", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.ellipse_box, self, "maj_ax2", "Axis b Patch 2 [m]", labelWidth=260, valueType=float, orientation="horizontal")
+
+        self.set_Shape()
+
+    def set_Shape(self):
+        self.rectangle_box.setVisible(self.shape == 0)
+        self.circle_box.setVisible(self.shape == 1)
+        self.ellipse_box.setVisible(self.shape == 2)
+
+    def get_boundary_shape(self):
+        if self.shape == 0:
+            boundary_shape = DoubleRectangle(x_left1   =-0.5*self.width  + self.horizontal_shift,
+                                             x_right1  = 0.5*self.width  + self.horizontal_shift,
+                                             y_bottom1 =-0.5*self.height + self.vertical_shift,
+                                             y_top1    = 0.5*self.height + self.vertical_shift,
+                                             x_left2   =-0.5*self.width2  + self.horizontal_shift2,
+                                             x_right2  = 0.5*self.width2  + self.horizontal_shift2,
+                                             y_bottom2 =-0.5*self.height2 + self.vertical_shift2,
+                                             y_top2    = 0.5*self.height2 + self.vertical_shift2,)
+
+        elif self.shape == 1:
+            boundary_shape = DoubleCircle( radius1=self.radius,
+                                     x_center1=self.horizontal_shift,
+                                     y_center1=self.vertical_shift,
+                                     radius2=self.radius2,
+                                     x_center2=self.horizontal_shift2,
+                                     y_center2=self.vertical_shift2,
+                                           )
+        elif self.shape == 2:
+            boundary_shape = DoubleEllipse(
+                                    a_axis_min1 =-0.5*self.min_ax + self.horizontal_shift,
+                                    a_axis_max1 =0.5*self.min_ax + self.horizontal_shift,
+                                    b_axis_min1 =-0.5*self.maj_ax + self.vertical_shift,
+                                    b_axis_max1 =0.5*self.maj_ax + self.vertical_shift,
+                                    a_axis_min2 =-0.5*self.min_ax2 + self.horizontal_shift2,
+                                    a_axis_max2 =0.5*self.min_ax2 + self.horizontal_shift2,
+                                    b_axis_min2 =-0.5*self.maj_ax2 + self.vertical_shift2,
+                                    b_axis_max2 =0.5*self.maj_ax2 + self.vertical_shift2,
+                                    )
+
+        return boundary_shape
+
+    def get_boundary_shape_python_code(self):
+        txt = ""
+        if self.shape == 0:
+            txt += "\nfrom syned.beamline.shape import DoubleRectangle"
+            txt += "\nboundary_shape = DoubleRectangle(x_left1=%f,"%(-0.5*self.width + self.horizontal_shift)
+            txt += "x_right1=%f,"%(0.5*self.width + self.horizontal_shift)
+            txt += "y_bottom1=%f,"%(-0.5*self.height + self.vertical_shift)
+            txt += "y_top1=%f,"%(0.5*self.height + self.vertical_shift)
+            txt += "\n    x_left2=%f,"%(-0.5*self.width2 + self.horizontal_shift2)
+            txt += "x_right2=%f,"%(0.5*self.width2 + self.horizontal_shift2)
+            txt += "y_bottom2=%f,"%(-0.5*self.height2 + self.vertical_shift2)
+            txt += "y_top2=%f)\n"%(0.5*self.height2 + self.vertical_shift2)
+        elif self.shape == 1:
+            txt += "\nfrom syned.beamline.shape import DoubleCircle\n"
+            txt += "\nboundary_shape = DoubleCircle(radius1=%f,"%(self.radius)
+            txt += "                         x_center1=%f,\n"%(self.horizontal_shift)
+            txt += "                         y_center1=%f,\n"%(self.vertical_shift)
+            txt += "                         radius2=%f,\n"%(self.radius2)
+            txt += "                         x_center2=%f,\n"%(self.horizontal_shift2)
+            txt += "                         y_center2=%f)\n"%(self.vertical_shift2)
+
+        elif self.shape == 2:
+            txt += "\nfrom syned.beamline.shape import Ellipse\n"
+            txt += "\nboundary_shape = Ellipse(a_axis_min1=%f,\n"%(-0.5*self.min_ax + self.horizontal_shift)
+            txt += "                         a_axis_max1=%f,\n"%(   0.5*self.min_ax + self.horizontal_shift)
+            txt += "                         b_axis_min1=%f,\n"%(  -0.5*self.maj_ax + self.vertical_shift)
+            txt += "                         b_axis_max1=%f)\n"%(   0.5*self.maj_ax + self.vertical_shift)
+            txt += "                         a_axis_min2=%f,\n"%(  -0.5*self.min_ax2 + self.horizontal_shift2)
+            txt += "                         a_axis_max2=%f,\n"%(   0.5*self.min_ax2 + self.horizontal_shift2)
+            txt += "                         b_axis_min2=%f,\n"%(  -0.5*self.maj_ax2 + self.vertical_shift2)
+            txt += "                         b_axis_max2=%f)\n"%(   0.5*self.maj_ax2 + self.vertical_shift2)
+
+        return txt
+
+
+
+    def check_data(self):
+        super().check_data()
+
+        congruence.checkNumber(self.horizontal_shift, "Horizontal Shift")
+        congruence.checkNumber(self.vertical_shift, "Vertical Shift")
+
+        if self.shape == 0:
+            congruence.checkStrictlyPositiveNumber(self.width, "Width")
+            congruence.checkStrictlyPositiveNumber(self.height, "Height")
+        elif self.shape == 1:
+            congruence.checkStrictlyPositiveNumber(self.radius, "Radius")
+        elif self.shape == 2:
+            congruence.checkStrictlyPositiveNumber(self.min_ax, "(Boundary) Minor Axis")
+            congruence.checkStrictlyPositiveNumber(self.maj_ax, "(Boundary) Major Axis")
+
+    def receive_specific_syned_data(self, optical_element):
+        if not optical_element is None:
+            self.check_syned_instance(optical_element)
+
+            if not optical_element._boundary_shape is None:
+
+                left, right, bottom, top = optical_element._boundary_shape.get_boundaries()
+
+                self.horizontal_shift = round(((right + left) / 2), 6)
+                self.vertical_shift = round(((top + bottom) / 2), 6)
+
+                if isinstance(optical_element._boundary_shape, Rectangle):
+                    self.shape = 0
+
+                    self.width = round((numpy.abs(right - left)), 6)
+                    self.height = round((numpy.abs(top - bottom)), 6)
+
+                if isinstance(optical_element._boundary_shape, Circle):
+                    self.shape = 1
+
+                if isinstance(optical_element._boundary_shape, Ellipse):
+                    self.shape = 2
+
+                    self.min_ax = round((numpy.abs(right - left)), 6)
+                    self.maj_ax = round((numpy.abs(top - bottom)), 6)
+
+                self.set_Shape()
+        else:
+            raise Exception("Syned Data not correct: Empty Optical Element")
+
+# --------------------------------------------------------------
+
+
 
 class OWWOOpticalElementWithSurfaceShape(OWWOOpticalElementWithBoundaryShape):
 
