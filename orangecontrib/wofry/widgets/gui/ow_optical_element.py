@@ -508,23 +508,23 @@ class OWWOOpticalElementWithBoundaryShape(OWWOOpticalElement):
         txt = ""
         if self.shape == 0:
             txt += "\nfrom syned.beamline.shape import Rectangle"
-            txt += "\nboundary_shape = Rectangle(x_left=%f,"%(-0.5*self.width + self.horizontal_shift)
-            txt += "x_right=%f,"%(0.5*self.width + self.horizontal_shift)
-            txt += "y_bottom=%f,"%(-0.5*self.height + self.vertical_shift)
-            txt += "y_top=%f)\n"%(0.5*self.height + self.vertical_shift)
+            txt += "\nboundary_shape = Rectangle(x_left=%g,"%(-0.5*self.width + self.horizontal_shift)
+            txt += "x_right=%g,"%(0.5*self.width + self.horizontal_shift)
+            txt += "y_bottom=%g,"%(-0.5*self.height + self.vertical_shift)
+            txt += "y_top=%g)\n"%(0.5*self.height + self.vertical_shift)
 
         elif self.shape == 1:
             txt += "\nfrom syned.beamline.shape import Circle\n"
             txt += "\nboundary_shape = Circle( %f,\n"%(self.radius)
-            txt += "                         x_center=%f,\n"%(self.horizontal_shift)
-            txt += "                         y_center=%f)\n"%(self.vertical_shift)
+            txt += "                         x_center=%g,\n"%(self.horizontal_shift)
+            txt += "                         y_center=%g)\n"%(self.vertical_shift)
 
         elif self.shape == 2:
             txt += "\nfrom syned.beamline.shape import Ellipse\n"
-            txt += "\nboundary_shape = Ellipse(a_axis_min=%f,\n"%(-0.5*self.min_ax + self.horizontal_shift)
-            txt += "                         a_axis_max=%f,\n"%(0.5*self.min_ax + self.horizontal_shift)
-            txt += "                         b_axis_min=%f,\n"%(-0.5*self.maj_ax + self.vertical_shift)
-            txt += "                         b_axis_max=%f)\n"%(0.5*self.maj_ax + self.vertical_shift)
+            txt += "\nboundary_shape = Ellipse(a_axis_min=%g,\n"%(-0.5*self.min_ax + self.horizontal_shift)
+            txt += "                         a_axis_max=%g,\n"%(0.5*self.min_ax + self.horizontal_shift)
+            txt += "                         b_axis_min=%g,\n"%(-0.5*self.maj_ax + self.vertical_shift)
+            txt += "                         b_axis_max=%g)\n"%(0.5*self.maj_ax + self.vertical_shift)
 
         return txt
 

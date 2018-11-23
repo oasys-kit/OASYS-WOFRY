@@ -36,3 +36,6 @@ class OWWOScreen(OWWOOpticalElement):
     def check_syned_instance(self, optical_element):
         if not isinstance(optical_element, Screen):
             raise Exception("Syned Data not correct: Optical Element is not a Screen")
+
+    def receive_specific_syned_data(self, optical_element):
+        pass
