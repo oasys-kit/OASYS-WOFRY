@@ -372,11 +372,11 @@ class OWGenericWavefront2D(WofryWidget):
         txt += "\nfrom wofry.propagator.wavefront2D.generic_wavefront import GenericWavefront2D"
 
         if self.initialize_from == 0:
-            txt += "\ninput_wavefront = GenericWavefront2D.initialize_wavefront_from_range(x_min=%f,x_max=%f,y_min=%f,y_max=%f,number_of_points=(%d,%d))"%\
+            txt += "\ninput_wavefront = GenericWavefront2D.initialize_wavefront_from_range(x_min=%g,x_max=%g,y_min=%g,y_max=%g,number_of_points=(%d,%d))"%\
             (self.range_from_h,self.range_to_h,self.range_from_v,self.range_to_v,self.number_of_points_h, self.number_of_points_v)
 
         else:
-            txt += "\ninput_wavefront = GenericWavefront2D.initialize_wavefront_from_steps(x_start=%f, x_step=%f,y_start=%f,y_step=%f,"+\
+            txt += "\ninput_wavefront = GenericWavefront2D.initialize_wavefront_from_steps(x_start=%g, x_step=%g,y_start=%g,y_step=%g,"+\
                    "number_of_points=(%d,%d))"%\
                    (self.steps_start_h,self.steps_step_h,self.steps_start_v,self.steps_step_v,self.number_of_points_h,self.number_of_points_v)
 

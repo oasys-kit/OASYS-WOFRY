@@ -515,7 +515,7 @@ class OWWOOpticalElementWithBoundaryShape(OWWOOpticalElement):
 
         elif self.shape == 1:
             txt += "\nfrom syned.beamline.shape import Circle\n"
-            txt += "\nboundary_shape = Circle( %f,\n"%(self.radius)
+            txt += "\nboundary_shape = Circle( %g,\n"%(self.radius)
             txt += "                         x_center=%g,\n"%(self.horizontal_shift)
             txt += "                         y_center=%g)\n"%(self.vertical_shift)
 
@@ -685,33 +685,33 @@ class OWWOOpticalElementWithDoubleBoundaryShape(OWWOOpticalElement):
         txt = ""
         if self.shape == 0:
             txt += "\nfrom syned.beamline.shape import DoubleRectangle"
-            txt += "\nboundary_shape = DoubleRectangle(x_left1=%f,"%(-0.5*self.width + self.horizontal_shift)
-            txt += "x_right1=%f,"%(0.5*self.width + self.horizontal_shift)
-            txt += "y_bottom1=%f,"%(-0.5*self.height + self.vertical_shift)
-            txt += "y_top1=%f,"%(0.5*self.height + self.vertical_shift)
-            txt += "\n    x_left2=%f,"%(-0.5*self.width2 + self.horizontal_shift2)
-            txt += "x_right2=%f,"%(0.5*self.width2 + self.horizontal_shift2)
-            txt += "y_bottom2=%f,"%(-0.5*self.height2 + self.vertical_shift2)
-            txt += "y_top2=%f)\n"%(0.5*self.height2 + self.vertical_shift2)
+            txt += "\nboundary_shape = DoubleRectangle(x_left1=%g,"%(-0.5*self.width + self.horizontal_shift)
+            txt += "x_right1=%g,"%(0.5*self.width + self.horizontal_shift)
+            txt += "y_bottom1=%g,"%(-0.5*self.height + self.vertical_shift)
+            txt += "y_top1=%g,"%(0.5*self.height + self.vertical_shift)
+            txt += "\n    x_left2=%g,"%(-0.5*self.width2 + self.horizontal_shift2)
+            txt += "x_right2=%g,"%(0.5*self.width2 + self.horizontal_shift2)
+            txt += "y_bottom2=%g,"%(-0.5*self.height2 + self.vertical_shift2)
+            txt += "y_top2=%g)\n"%(0.5*self.height2 + self.vertical_shift2)
         elif self.shape == 1:
             txt += "\nfrom syned.beamline.shape import DoubleCircle\n"
-            txt += "\nboundary_shape = DoubleCircle(radius1=%f,"%(self.radius)
-            txt += "                         x_center1=%f,\n"%(self.horizontal_shift)
-            txt += "                         y_center1=%f,\n"%(self.vertical_shift)
-            txt += "                         radius2=%f,\n"%(self.radius2)
-            txt += "                         x_center2=%f,\n"%(self.horizontal_shift2)
-            txt += "                         y_center2=%f)\n"%(self.vertical_shift2)
+            txt += "\nboundary_shape = DoubleCircle(radius1=%g,"%(self.radius)
+            txt += "                         x_center1=%g,\n"%(self.horizontal_shift)
+            txt += "                         y_center1=%g,\n"%(self.vertical_shift)
+            txt += "                         radius2=%g,\n"%(self.radius2)
+            txt += "                         x_center2=%g,\n"%(self.horizontal_shift2)
+            txt += "                         y_center2=%g)\n"%(self.vertical_shift2)
 
         elif self.shape == 2:
             txt += "\nfrom syned.beamline.shape import Ellipse\n"
-            txt += "\nboundary_shape = Ellipse(a_axis_min1=%f,\n"%(-0.5*self.min_ax + self.horizontal_shift)
-            txt += "                         a_axis_max1=%f,\n"%(   0.5*self.min_ax + self.horizontal_shift)
-            txt += "                         b_axis_min1=%f,\n"%(  -0.5*self.maj_ax + self.vertical_shift)
-            txt += "                         b_axis_max1=%f)\n"%(   0.5*self.maj_ax + self.vertical_shift)
-            txt += "                         a_axis_min2=%f,\n"%(  -0.5*self.min_ax2 + self.horizontal_shift2)
-            txt += "                         a_axis_max2=%f,\n"%(   0.5*self.min_ax2 + self.horizontal_shift2)
-            txt += "                         b_axis_min2=%f,\n"%(  -0.5*self.maj_ax2 + self.vertical_shift2)
-            txt += "                         b_axis_max2=%f)\n"%(   0.5*self.maj_ax2 + self.vertical_shift2)
+            txt += "\nboundary_shape = Ellipse(a_axis_min1=%g,\n"%(-0.5*self.min_ax + self.horizontal_shift)
+            txt += "                         a_axis_max1=%g,\n"%(   0.5*self.min_ax + self.horizontal_shift)
+            txt += "                         b_axis_min1=%g,\n"%(  -0.5*self.maj_ax + self.vertical_shift)
+            txt += "                         b_axis_max1=%g)\n"%(   0.5*self.maj_ax + self.vertical_shift)
+            txt += "                         a_axis_min2=%g,\n"%(  -0.5*self.min_ax2 + self.horizontal_shift2)
+            txt += "                         a_axis_max2=%g,\n"%(   0.5*self.min_ax2 + self.horizontal_shift2)
+            txt += "                         b_axis_min2=%g,\n"%(  -0.5*self.maj_ax2 + self.vertical_shift2)
+            txt += "                         b_axis_max2=%g)\n"%(   0.5*self.maj_ax2 + self.vertical_shift2)
 
         return txt
 
