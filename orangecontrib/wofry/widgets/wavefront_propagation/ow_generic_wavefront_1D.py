@@ -49,6 +49,7 @@ class OWGenericWavefront1D(WofryWidget):
 
     gaussian_sigma = Setting(0.001)
     gaussian_amplitude = Setting(1.0)
+    gaussian_beta = Setting(1.0)
     gaussian_mode = Setting(0)
     gaussian_shift = Setting(0.0)
 
@@ -149,7 +150,7 @@ class OWGenericWavefront1D(WofryWidget):
         self.plane_box = oasysgui.widgetBox(box_amplitude, "", addSpace=False, orientation="vertical", height=120)
         self.spherical_box = oasysgui.widgetBox(box_amplitude, "", addSpace=False, orientation="vertical", height=90)
         self.gaussian_box = oasysgui.widgetBox(box_amplitude, "", addSpace=False, orientation="vertical", height=90)
-        self.gsm_box = oasysgui.widgetBox(box_amplitude, "", addSpace=False, orientation="vertical", height=90)
+        self.gsm_box = oasysgui.widgetBox(box_amplitude, "", addSpace=False, orientation="vertical", height=120)
 
         # --- PLANE
 
@@ -201,7 +202,7 @@ class OWGenericWavefront1D(WofryWidget):
 
         # ---- GAUSSIAN
 
-        oasysgui.lineEdit(self.gaussian_box, self, "gaussian_sigma", "Sigma ",
+        oasysgui.lineEdit(self.gaussian_box, self, "gaussian_sigma", "Sigma I",
                           labelWidth=250, valueType=float, orientation="horizontal")
 
         oasysgui.lineEdit(self.gaussian_box, self, "gaussian_amplitude", "Amplitude of the Spectral Density",
@@ -212,7 +213,10 @@ class OWGenericWavefront1D(WofryWidget):
 
         # ---- GAUSSIAN SHELL MODEL
 
-        oasysgui.lineEdit(self.gsm_box, self, "gaussian_sigma", "Sigma ",
+        oasysgui.lineEdit(self.gsm_box, self, "gaussian_sigma", "Sigma I",
+                          labelWidth=250, valueType=float, orientation="horizontal")
+
+        oasysgui.lineEdit(self.gsm_box, self, "gaussian_beta", "beta = Sigma Mu/Sigma I",
                           labelWidth=250, valueType=float, orientation="horizontal")
 
         oasysgui.lineEdit(self.gsm_box, self, "gaussian_amplitude", "Amplitude of the Spectral Density",
@@ -323,7 +327,7 @@ class OWGenericWavefront1D(WofryWidget):
                                               shift=self.gaussian_shift)
             elif self.kind_of_wave == 3: # g.s.m.
                 self.wavefront1D.set_gaussian_hermite_mode(sigma_x=self.gaussian_sigma,amplitude=self.gaussian_amplitude,
-                                            mode_x=self.gaussian_mode,shift=self.gaussian_shift)
+                                            mode_x=self.gaussian_mode,shift=self.gaussian_shift,beta=self.gaussian_beta)
 
             if self.add_random_phase:
                 self.wavefront1D.add_phase_shifts(2*numpy.pi*numpy.random.random(self.wavefront1D.size()))
