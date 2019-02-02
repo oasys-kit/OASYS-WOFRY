@@ -142,7 +142,7 @@ class OWGenericWavefront1D(WofryWidget):
         box_amplitude = oasysgui.widgetBox(self.tab_sou, "Amplitude and phase Settings", addSpace=False, orientation="vertical")
 
         gui.comboBox(box_amplitude, self, "kind_of_wave", label="Kind of Wave", labelWidth=350,
-                     items=["Plane", "Spherical", "Gaussian", "Gaussian Shell Model"],
+                     items=["Plane", "Spherical", "Gaussian", "Gaussian Shell-model"],
                      callback=self.set_KindOfWave,
                      sendSelectedValue=False, orientation="horizontal")
 
@@ -222,8 +222,12 @@ class OWGenericWavefront1D(WofryWidget):
         oasysgui.lineEdit(self.gsm_box, self, "gaussian_amplitude", "Amplitude of the Spectral Density",
                           labelWidth=250, valueType=float, orientation="horizontal")
 
-        oasysgui.lineEdit(self.gsm_box, self, "gaussian_mode", "Mode",
-                          labelWidth=250, valueType=int, orientation="horizontal")
+
+        mode_index_box = oasysgui.widgetBox(self.gsm_box, "", addSpace=True, orientation="horizontal", ) #width=550, height=50)
+        oasysgui.lineEdit(mode_index_box, self, "gaussian_mode", "Mode",
+                          labelWidth=200, valueType=int, orientation="horizontal")
+        gui.button(mode_index_box, self, "+1", callback=self.increase_mode_index)
+
 
         oasysgui.lineEdit(self.gsm_box, self, "gaussian_shift", "Center",
                           labelWidth=250, valueType=float, orientation="horizontal")
@@ -232,6 +236,10 @@ class OWGenericWavefront1D(WofryWidget):
 
 
         self.set_KindOfWave()
+
+    def increase_mode_index(self):
+        self.gaussian_mode += 1
+        self.generate()
 
     def set_Units(self):
         self.units_box_1.setVisible(self.units == 0)
