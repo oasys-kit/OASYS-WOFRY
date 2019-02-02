@@ -57,6 +57,8 @@ class OWGenericWavefront2D(WofryWidget):
     gaussian_amplitude = Setting(1.0)
     gaussian_mode_h = Setting(0)
     gaussian_mode_v = Setting(0)
+    gaussian_beta_h = Setting(1.0)
+    gaussian_beta_v = Setting(1.0)
 
     amplitude = Setting(1.0)
     phase = Setting(0.0)
@@ -224,19 +226,27 @@ class OWGenericWavefront2D(WofryWidget):
 
         # ---- GAUSSIAN SHELL MODEL
 
-        oasysgui.lineEdit(self.gsm_box, self, "gaussian_sigma_h", "Sigma (H)",
+        oasysgui.lineEdit(self.gsm_box, self, "gaussian_sigma_h", "H Sigma I",
                           labelWidth=250, valueType=float, orientation="horizontal")
 
-        oasysgui.lineEdit(self.gsm_box, self, "gaussian_sigma_v", "Sigma (V)",
+        oasysgui.lineEdit(self.gsm_box, self, "gaussian_sigma_v", "V Sigma I",
                           labelWidth=250, valueType=float, orientation="horizontal")
+
+
+        oasysgui.lineEdit(self.gsm_box, self, "gaussian_beta_h", "H beta = Sigma Mu/Sigma I",
+                          labelWidth=250, valueType=float, orientation="horizontal")
+
+        oasysgui.lineEdit(self.gsm_box, self, "gaussian_beta_v", "V beta = Sigma Mu/Sigma I",
+                          labelWidth=250, valueType=float, orientation="horizontal")
+
 
         oasysgui.lineEdit(self.gsm_box, self, "gaussian_amplitude", "Amplitude of the Spectral Density",
                           labelWidth=250, valueType=float, orientation="horizontal")
 
-        oasysgui.lineEdit(self.gsm_box, self, "gaussian_mode_h", "Mode (H)",
+        oasysgui.lineEdit(self.gsm_box, self, "gaussian_mode_h", "H Mode",
                           labelWidth=250, valueType=int, orientation="horizontal")
 
-        oasysgui.lineEdit(self.gsm_box, self, "gaussian_mode_v", "Mode (V)",
+        oasysgui.lineEdit(self.gsm_box, self, "gaussian_mode_v", "V Mode",
                           labelWidth=250, valueType=int, orientation="horizontal")
 
         self.set_KindOfWave()
@@ -343,7 +353,10 @@ class OWGenericWavefront2D(WofryWidget):
                                                            sigma_y=self.gaussian_sigma_v,
                                                            amplitude=self.gaussian_amplitude,
                                                            nx=self.gaussian_mode_h,
-                                                           ny=self.gaussian_mode_v)
+                                                           ny=self.gaussian_mode_v,
+                                                           betax=self.gaussian_beta_h,
+                                                           betay=self.gaussian_beta_v,
+                                                           )
 
             self.initializeTabs()
             self.plot_results()
