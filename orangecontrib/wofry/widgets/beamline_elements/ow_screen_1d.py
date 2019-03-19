@@ -18,6 +18,14 @@ class OWWOScreen1D(OWWOOpticalElement1D):
     def get_optical_element(self):
         return WOScreen1D()
 
+    def get_optical_element_python_code(self):
+        txt  = ""
+        txt += "\nfrom wofry.beamline.optical_elements.ideal_elements.screen import WOScreen1D"
+        txt += "\n"
+        txt += "\noptical_element = WOScreen1D()"
+        txt += "\n"
+        return txt
+
     def check_syned_instance(self, optical_element):
         if not isinstance(optical_element, Screen):
             raise Exception("Syned Data not correct: Optical Element is not a Screen")

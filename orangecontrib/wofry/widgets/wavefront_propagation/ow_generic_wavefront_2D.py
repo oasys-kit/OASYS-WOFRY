@@ -318,7 +318,10 @@ class OWGenericWavefront2D(WofryWidget):
                 congruence.checkPositiveNumber(self.gaussian_mode_v, "Mode (V)")
 
     def generate(self):
+
+
         try:
+            self.wofry_output.setText("")
             self.progressBarInit()
 
             self.check_fields()

@@ -51,6 +51,15 @@ class OWWOStop1D(OWWOOpticalElementWithBoundaryShape1D):
     def get_optical_element(self):
         return WOBeamStopper1D(boundary_shape=self.get_boundary_shape())
 
+    def get_optical_element_python_code(self):
+        txt = self.get_boundary_shape_python_code()
+        txt += "\n"
+        txt += "from wofry.beamline.optical_elements.absorbers.beam_stopper import WOBeamStopper1D"
+        txt += "\n"
+        txt += "optical_element = WOBeamStopper1D(boundary_shape=boundary_shape)"
+        txt += "\n"
+        return txt
+
     def check_syned_instance(self, optical_element):
         if not isinstance(optical_element, BeamStopper):
             raise Exception("Syned Data not correct: Optical Element is not a BeamStopper")

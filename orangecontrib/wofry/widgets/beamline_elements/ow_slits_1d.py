@@ -22,6 +22,16 @@ class OWWOSlit1D(OWWOOpticalElementWithBoundaryShape1D):
     def get_optical_element(self):
         return WOSlit1D(boundary_shape=self.get_boundary_shape())
 
+    def get_optical_element_python_code(self):
+
+        txt = self.get_boundary_shape_python_code()
+        txt += "\n"
+        txt += "from wofry.beamline.optical_elements.absorbers.slit import WOSlit1D"
+        txt += "\n"
+        txt += "optical_element = WOSlit1D(boundary_shape=boundary_shape)"
+        txt += "\n"
+        return txt
+
     def check_syned_instance(self, optical_element):
         if not isinstance(optical_element, Slit):
             raise Exception("Syned Data not correct: Optical Element is not a Slit")

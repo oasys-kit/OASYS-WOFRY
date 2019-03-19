@@ -194,6 +194,7 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
 
     def propagate_wavefront(self):
         try:
+            self.wofry_output.setText("")
             self.progressBarInit()
 
             if self.input_wavefront is None: raise Exception("No Input Wavefront")
@@ -266,7 +267,7 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
 
         if write_wavefront_template:
             txt += "\n\n#"
-            txt += "\n# create/import your input_wavefront\n#"
+            txt += "\n# create/import your input_wavefront (THIS IS A PLACEHOLDER - REPLACE WITH YOUR SOURCE)\n#"
             txt += "\n#"
             txt += "\nfrom wofry.propagator.wavefront2D.generic_wavefront import GenericWavefront2D"
             txt += "\ninput_wavefront = GenericWavefront2D.initialize_wavefront_from_range(-10e-6,10e-6,-100e-6,100e-6,(200,100),1e-10)"
@@ -290,7 +291,7 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
 
 
         txt += "\n#"
-        txt += "\n# propagating\n#"
+        txt += "\n# propagating (***  ONLY THE ZOOM PROPAGATOR IS IMPLEMENTED ***)\n#"
         txt += "\n#"
 
         txt += "\npropagation_elements = PropagationElements()"

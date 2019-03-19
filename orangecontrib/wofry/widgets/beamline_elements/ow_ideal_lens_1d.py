@@ -33,6 +33,14 @@ class OWWOIdealLens1D(OWWOOpticalElement1D):
                            focal_x=self.focal_x,
                            focal_y=None)
 
+    def get_optical_element_python_code(self):
+        txt  = ""
+        txt += "\nfrom wofry.beamline.optical_elements.ideal_elements.lens import WOIdealLens"
+        txt += "\n"
+        txt += "\noptical_element = WOIdealLens(name='%s',focal_x=%f,focal_y=None)"%(self.oe_name,self.focal_x)
+        txt += "\n"
+        return txt
+
     def check_data(self):
         super().check_data()
 

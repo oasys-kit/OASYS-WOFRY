@@ -306,6 +306,8 @@ class OWGenericWavefront1D(WofryWidget):
 
     def generate(self):
         try:
+            self.wofry_output.setText("")
+
             self.progressBarInit()
 
             self.check_fields()
@@ -352,6 +354,12 @@ class OWGenericWavefront1D(WofryWidget):
                 except:
                     pass
 
+            try:
+                python_code = self.generate_python_code()
+                self.writeStdOut(python_code)
+            except:
+                pass
+
             self.send("GenericWavefront1D", self.wavefront1D)
 
         except Exception as exception:
@@ -360,6 +368,58 @@ class OWGenericWavefront1D(WofryWidget):
             #raise exception
 
             self.progressBarFinished()
+
+    def generate_python_code(self):
+
+        txt = ""
+
+        txt += "\n\n#"
+        txt += "\n# create input_wavefront\n#"
+        txt += "\n#"
+        txt += "\nfrom wofry.propagator.wavefront1D.generic_wavefront import GenericWavefront1D"
+
+        if self.initialize_from == 0:
+            txt += "\ninput_wavefront = GenericWavefront1D.initialize_wavefront_from_range(x_min=%g,x_max=%g,number_of_points=%d)"%\
+            (self.range_from,self.range_to,self.number_of_points)
+
+        else:
+            txt += "\ninput_wavefront = GenericWavefront1D.initialize_wavefront_from_steps(x_start=%g, x_step=%g,number_of_points=%d)"%\
+                   (self.steps_start,self.steps_step,self.number_of_points)
+
+        if self.units == 0:
+            txt += "\ninput_wavefront.set_photon_energy(%g)"%(self.energy)
+        else:
+            txt += "\ninput_wavefront.set_wavelength(%g)"%(self.wavelength)
+
+
+
+        if self.kind_of_wave == 0: #plane
+            if self.initialize_amplitude == 0:
+                txt += "\ninput_wavefront.set_plane_wave_from_complex_amplitude(complex_amplitude=complex(%g,%g),inclination=%g)"%\
+                       (self.complex_amplitude_re,self.complex_amplitude_im,self.inclination)
+            else:
+                txt += "\ninput_wavefront.set_plane_wave_from_amplitude_and_phase(amplitude=%g,phase=%g,inclination=%g)"%(self.amplitude,self.phase,self.inclination)
+        elif self.kind_of_wave == 1: # spheric
+            txt += "\ninput_wavefront.set_spherical_wave(radius=%g,center=%g,complex_amplitude=complex(%g, %g))"%\
+                   (self.radius,self.center,self.complex_amplitude_re,self.complex_amplitude_im)
+        elif self.kind_of_wave == 2: # gaussian
+            txt += "\ninput_wavefront.set_gaussian(sigma_x=%f, amplitude=%f,shift=%f)"%\
+                   (self.gaussian_sigma,self.gaussian_amplitude,self.gaussian_shift)
+        elif self.kind_of_wave == 3: # g.s.m.
+            txt += "\ninput_wavefront.set_gaussian_hermite_mode(sigma_x=%g,amplitude=%g,mode_x=%d,shift=%f,beta=%g)"%\
+                   (self.gaussian_sigma,self.gaussian_amplitude,self.gaussian_mode,self.gaussian_shift,self.gaussian_beta)
+
+            #
+            # if self.add_random_phase:
+            #     self.wavefront1D.add_phase_shifts(2*numpy.pi*numpy.random.random(self.wavefront1D.size()))
+        if self.add_random_phase:
+            txt += "\ninput_wavefront.add_phase_shifts(2*numpy.pi*numpy.random.random(input_wavefront.size()))"
+
+        txt += "\n\n\nfrom srxraylib.plot.gol import plot"
+        txt += "\nplot(input_wavefront.get_abscissas(),input_wavefront.get_intensity())"
+
+        return txt
+
 
     def do_plot_results(self, progressBarValue=80):
         if not self.wavefront1D is None:
