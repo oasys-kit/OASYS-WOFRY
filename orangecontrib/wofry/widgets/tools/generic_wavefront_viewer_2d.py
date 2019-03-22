@@ -189,6 +189,12 @@ class GenericWavefrontViewer2D(WofryWidget):
                                  xtitle="Horizontal [$\mu$m] ( %d pixels)"%(self.accumulated_data["x"].size),
                                  ytitle="Vertical [$\mu$m] (%d pixels)"%(self.accumulated_data["y"].size))
 
+                x,y,txt = self.get_data_iterations()
+                if not(self.keep_result):
+                    self.wofry_output.setText("")
+                self.writeStdOut(txt)
+
+
             if self.plot_phase:
                 tabs_canvas_index += 1
                 phase =self.accumulated_data["phase"] / self.accumulated_data["counter"]
@@ -282,6 +288,7 @@ class GenericWavefrontViewer2D(WofryWidget):
         self.accumulated_data = None
         self.wavefront2D = None
 
+        self.wofry_output.setText("")
 
 if __name__ == '__main__':
 
