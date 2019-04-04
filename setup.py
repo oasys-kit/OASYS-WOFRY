@@ -8,16 +8,16 @@ except AttributeError:
     from setuptools import find_packages, setup
 
 NAME = 'OASYS1-WOFRY'
-VERSION = '1.0.5'
+VERSION = '1.0.6'
 ISRELEASED = False
 
 DESCRIPTION = 'WOFRY (Wave Optics FRamework in pYthon)'
 README_FILE = os.path.join(os.path.dirname(__file__), 'README.txt')
 LONG_DESCRIPTION = open(README_FILE).read()
 AUTHOR = 'Manuel Sanchez del Rio, Luca Rebuffi'
-AUTHOR_EMAIL = 'luca.rebuffi@elettra.eu'
-URL = 'https://github.com/lucarebuffi/OASYS-WOFRY'
-DOWNLOAD_URL = 'https://github.com/lucarebuffi/OASYS-WOFRY'
+AUTHOR_EMAIL = 'lrebuffi@anl.gov'
+URL = 'https://github.com/oasys-kit/OASYS-WOFRY'
+DOWNLOAD_URL = 'https://github.com/oasys-kit/OASYS-WOFRY'
 LICENSE = 'GPLv3'
 
 KEYWORDS = (
@@ -39,7 +39,7 @@ SETUP_REQUIRES = (
 )
 
 INSTALL_REQUIRES = (
-    'oasys1>=1.1.41',
+    'oasys1>=1.1.42',
 )
 
 PACKAGES = find_packages(exclude=('*.tests', '*.tests.*', 'tests.*', 'tests'))
