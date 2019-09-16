@@ -66,7 +66,7 @@ class OWGenericWavefront2D(WofryWidget):
     wavefront2D = None
 
     def __init__(self):
-        super().__init__(is_automatic=False, show_view_options=False)
+        super().__init__(is_automatic=False, show_view_options=True)
 
         self.runaction = widget.OWAction("Generate Wavefront", self)
         self.runaction.triggered.connect(self.generate)
@@ -277,7 +277,7 @@ class OWGenericWavefront2D(WofryWidget):
         for index in indexes:
             self.tabs.removeTab(size-1-index)
 
-        titles = ["Wavefront 1D"]
+        titles = ["Wavefront 2D","Phase"]
         self.tab = []
         self.plot_canvas = []
 
@@ -421,20 +421,48 @@ class OWGenericWavefront2D(WofryWidget):
 
             self.progressBarSet(progressBarValue)
 
-            titles = ["Wavefront 2D Intensity"]
+            # titles = ["Wavefront 2D Intensity"]
+            titles = ["Wavefront 2D Intensity", "Wavefront 2D Phase"]
 
             self.plot_data2D(data2D=self.wavefront2D.get_intensity(),
-                             dataX=self.wavefront2D.get_coordinate_x(),
-                             dataY=self.wavefront2D.get_coordinate_y(),
+                             dataX=1e6 * self.wavefront2D.get_coordinate_x(),
+                             dataY=1e6 * self.wavefront2D.get_coordinate_y(),
                              progressBarValue=progressBarValue,
                              tabs_canvas_index=0,
                              plot_canvas_index=0,
                              title=titles[0],
-                             xtitle="Horizontal Coordinate",
-                             ytitle="Vertical Coordinate")
+                             xtitle="Horizontal [$\mu$m] ( %d pixels)" % (self.wavefront2D.get_coordinate_x().size),
+                             ytitle="Vertical [$\mu$m] ( %d pixels)" % (self.wavefront2D.get_coordinate_y().size))
 
 
-            self.plot_canvas[0].resetZoom()
+
+            # self.plot_data2D(data2D=self.wavefront_to_plot.get_intensity(),
+            #                  dataX=1e6 * self.wavefront_to_plot.get_coordinate_x(),
+            #                  dataY=1e6 * self.wavefront_to_plot.get_coordinate_y(),
+            #                  progressBarValue=progressBarValue,
+            #                  tabs_canvas_index=0,
+            #                  plot_canvas_index=0,
+            #                  title=titles[0],
+            #                  xtitle="Horizontal [$\mu$m] ( %d pixels)" % (
+            #                      self.wavefront_to_plot.get_coordinate_x().size),
+            #                  ytitle="Vertical [$\mu$m] ( %d pixels)" % (self.wavefront_to_plot.get_coordinate_y().size))
+
+            self.plot_data2D(data2D=self.wavefront2D.get_phase(from_minimum_intensity=0.1),
+                             dataX=1e6 * self.wavefront2D.get_coordinate_x(),
+                             dataY=1e6 * self.wavefront2D.get_coordinate_y(),
+                             progressBarValue=progressBarValue,
+                             tabs_canvas_index=1,
+                             plot_canvas_index=1,
+                             title=titles[1],
+                             xtitle="Horizontal [$\mu$m] ( %d pixels)" % (
+                                 self.wavefront2D.get_coordinate_x().size),
+                             ytitle="Vertical [$\mu$m] ( %d pixels)" % (self.wavefront2D.get_coordinate_y().size))
+
+
+
+
+
+            # self.plot_canvas[0].resetZoom()
 
             self.progressBarFinished()
 

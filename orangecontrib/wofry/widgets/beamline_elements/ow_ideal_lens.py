@@ -66,7 +66,7 @@ if __name__ == "__main__":
 
     a = QApplication(sys.argv)
     ow = OWWOIdealLens()
-    ow.input_wavefront = GenericWavefront2D.initialize_wavefront_from_range(-0.002,0.002,-0.001,0.001,(200,200))
+    ow.input_wavefront = GenericWavefront2D.initialize_wavefront_from_range(-0.002,0.002,-0.001,0.001,(400,200))
 
     ow.show()
     a.exec_()

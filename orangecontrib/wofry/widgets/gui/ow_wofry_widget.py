@@ -1,7 +1,5 @@
 import numpy
 
-from silx.gui.plot import Plot2D
-
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QMessageBox, QApplication
 from PyQt5.QtCore import QRect
@@ -13,9 +11,12 @@ from oasys.widgets import gui as oasysgui
 
 from oasys.widgets.widget import AutomaticWidget
 
+from silx.gui.plot import Plot2D
+from orangecontrib.wofry.util.wofry_util import ImageViewWithFWHM
+
 class WofryWidget(AutomaticWidget):
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "luca.rebuffi(@at@)anl.gov"
 
     IMAGE_WIDTH = 760
     IMAGE_HEIGHT = 545
@@ -52,7 +53,7 @@ class WofryWidget(AutomaticWidget):
 
             self.view_type_combo = gui.comboBox(view_box_1, self, "view_type", label="View Results",
                                                 labelWidth=220,
-                                                items=["No", "Yes"],
+                                                items=["No", "Yes (image)","Yes (image + hist.)"],
                                                 callback=self.set_ViewType, sendSelectedValue=False, orientation="horizontal")
         else:
             self.view_type = 1
@@ -178,7 +179,20 @@ class WofryWidget(AutomaticWidget):
 
         self.progressBarSet(progressBarValue)
 
-    def plot_data2D(self, data2D, dataX, dataY, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle=""):
+    def plot_data2D(self, data2D, dataX, dataY, progressBarValue, tabs_canvas_index, plot_canvas_index,
+                    title="",xtitle="", ytitle=""):
+
+        if self.view_type == 0:
+            pass
+        elif self.view_type == 1:
+            self.plot_data2D_only_image(data2D, dataX, dataY, progressBarValue, tabs_canvas_index,plot_canvas_index,
+                         title=title, xtitle=xtitle, ytitle=ytitle)
+        elif self.view_type == 2:
+            self.plot_data2D_with_histograms(data2D, dataX, dataY, progressBarValue, tabs_canvas_index,plot_canvas_index,
+                         title=title, xtitle=xtitle, ytitle=ytitle)
+
+    def plot_data2D_only_image(self, data2D, dataX, dataY, progressBarValue, tabs_canvas_index, plot_canvas_index,
+                    title="", xtitle="", ytitle=""):
 
         self.tab[tabs_canvas_index].layout().removeItem(self.tab[tabs_canvas_index].layout().itemAt(0))
 
@@ -219,19 +233,31 @@ class WofryWidget(AutomaticWidget):
                                                      replace=True)
 
 
-
-        # srio - color bar included in silx 0.6
-        # self.plot_canvas[plot_canvas_index].setActiveImage("zio billy")
-
-        # from matplotlib.image import AxesImage
-        # image = AxesImage(self.plot_canvas[plot_canvas_index]._backend.ax)
-        # image.set_data(numpy.array(data_to_plot))
-        #
-        # self.plot_canvas[plot_canvas_index]._backend.fig.colorbar(image, ax=self.plot_canvas[plot_canvas_index]._backend.ax)
-
         self.plot_canvas[plot_canvas_index].setGraphXLabel(xtitle)
         self.plot_canvas[plot_canvas_index].setGraphYLabel(ytitle)
         self.plot_canvas[plot_canvas_index].setGraphTitle(title)
+
+        self.tab[tabs_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
+
+        self.progressBarSet(progressBarValue)
+
+    def plot_data2D_with_histograms(self, data2D, dataX, dataY, progressBarValue, tabs_canvas_index, plot_canvas_index,
+                                    title="", xtitle="", ytitle=""):
+
+        xum = "H [\u03BCm]"
+        yum = "V [\u03BCm]"
+
+        self.tab[tabs_canvas_index].layout().removeItem(self.tab[tabs_canvas_index].layout().itemAt(0))
+
+        data_to_plot = data2D
+
+        self.plot_canvas[plot_canvas_index] = ImageViewWithFWHM() #Plot2D()
+
+        colormap = {"name":"temperature", "normalization":"linear", "autoscale":True, "vmin":0, "vmax":0, "colors":256}
+
+        self.plot_canvas[plot_canvas_index].plot_2D(numpy.array(data_to_plot),dataX,dataY,factor1=1e0,factor2=1e0,
+               title=title,xtitle=xtitle, ytitle=ytitle,xum=xum,yum=yum,colormap=colormap)
+
 
         self.tab[tabs_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
 

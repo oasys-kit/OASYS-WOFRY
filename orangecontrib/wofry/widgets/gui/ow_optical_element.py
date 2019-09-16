@@ -386,6 +386,7 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
 
                 titles = ["Wavefront 2D Intensity","Wavefront 2D Phase"]
 
+
                 self.plot_data2D(data2D=self.wavefront_to_plot.get_intensity(),
                                  dataX=1e6*self.wavefront_to_plot.get_coordinate_x(),
                                  dataY=1e6*self.wavefront_to_plot.get_coordinate_y(),
@@ -406,6 +407,7 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
                              title=titles[1],
                              xtitle="Horizontal [$\mu$m] ( %d pixels)"%(self.wavefront_to_plot.get_coordinate_x().size),
                              ytitle="Vertical [$\mu$m] ( %d pixels)"%(self.wavefront_to_plot.get_coordinate_y().size))
+
 
                 self.progressBarFinished()
 
