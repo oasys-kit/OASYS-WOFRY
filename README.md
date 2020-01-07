@@ -1,2 +1,2 @@
 # OASYS-WOFRY
-Widgets for Wofry library
+Widgets for WOFRY (Wave Optics FRamework in pYthon) library
