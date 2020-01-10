@@ -1,3 +1,4 @@
+import numpy
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
@@ -44,7 +45,7 @@ class OWWOIdealLens1D(OWWOOpticalElement1D):
     def check_data(self):
         super().check_data()
 
-        congruence.checkStrictlyPositiveNumber(self.focal_x, "Horizontal Focal Length")
+        congruence.checkStrictlyPositiveNumber(numpy.abs(self.focal_x), "Horizontal Focal Length")
 
 
     def receive_specific_syned_data(self, optical_element):

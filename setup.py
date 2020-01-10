@@ -8,7 +8,7 @@ except AttributeError:
     from setuptools import find_packages, setup
 
 NAME = 'OASYS1-WOFRY'
-VERSION = '1.0.10'
+VERSION = '1.0.11'
 ISRELEASED = False
 
 DESCRIPTION = 'WOFRY (Wave Optics FRamework in pYthon)'
@@ -22,6 +22,7 @@ LICENSE = 'GPLv3'
 
 KEYWORDS = (
     'simulator',
+    'waveoptics',
     'oasys1',
 )
 
