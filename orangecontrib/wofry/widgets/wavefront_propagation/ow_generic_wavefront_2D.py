@@ -10,6 +10,7 @@ from oasys.widgets import congruence
 
 from wofry.propagator.wavefront2D.generic_wavefront import GenericWavefront2D
 
+from orangecontrib.wofry.util.wofry_objects import WofryData
 from orangecontrib.wofry.widgets.gui.ow_wofry_widget import WofryWidget
 
 class OWGenericWavefront2D(WofryWidget):
@@ -23,10 +24,10 @@ class OWGenericWavefront2D(WofryWidget):
     category = "Wofry Wavefront Propagation"
     keywords = ["data", "file", "load", "read"]
 
-    outputs = [{"name":"GenericWavefront2D",
-                "type":GenericWavefront2D,
-                "doc":"GenericWavefront2D",
-                "id":"GenericWavefront2D"}]
+    outputs = [{"name":"WofryData",
+                "type":WofryData,
+                "doc":"WofryData",
+                "id":"WofryData"}]
 
     units = Setting(1)
     energy = Setting(1000.0)
@@ -365,16 +366,15 @@ class OWGenericWavefront2D(WofryWidget):
             self.plot_results()
 
             try:
-                python_code = self.generate_python_code()
-                self.writeStdOut(python_code)
+                self.writeStdOut(self.generate_python_code())
             except:
                 pass
 
-            self.send("GenericWavefront2D", self.wavefront2D)
+            self.send("WofryData", WofryData(wavefront=self.wavefront2D))
         except Exception as exception:
             QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)
 
-            #raise exception
+            if self.IS_DEVELOP: raise exception
 
             self.progressBarFinished()
 
@@ -470,7 +470,6 @@ class OWGenericWavefront2D(WofryWidget):
 if __name__ == "__main__":
     import sys
     from PyQt5.QtWidgets import QApplication
-    from wofry.propagator.wavefront2D.generic_wavefront import GenericWavefront2D
 
     a = QApplication(sys.argv)
     ow = OWGenericWavefront2D()

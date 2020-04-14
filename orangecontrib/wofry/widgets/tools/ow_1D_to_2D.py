@@ -1,16 +1,15 @@
 __author__ = 'labx'
 
 from PyQt5.QtGui import QPalette, QColor, QFont
-from PyQt5.QtWidgets import QMessageBox
 from orangewidget import gui
 from orangewidget import widget
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
-from oasys.widgets import congruence
 
-from wofry.propagator.wavefront1D.generic_wavefront import GenericWavefront1D
 from wofry.propagator.wavefront2D.generic_wavefront import GenericWavefront2D
+from wofry.propagator.wavefront1D.generic_wavefront import GenericWavefront1D
 
+from orangecontrib.wofry.util.wofry_objects import WofryData
 from orangecontrib.wofry.widgets.gui.ow_wofry_widget import WofryWidget
 
 class OW2Dto1D(WofryWidget):
@@ -24,13 +23,21 @@ class OW2Dto1D(WofryWidget):
     category = "Wofry Tools"
     keywords = ["data", "file", "load", "read"]
 
-    inputs = [("Horizontal Wavefront", GenericWavefront1D, "set_input_h"),
-              ("Vertical Wavefront", GenericWavefront1D, "set_input_v")]
+    inputs = [("Horizontal Data", WofryData, "set_input_h"),
+              ("Vertical Data", WofryData, "set_input_v"),
+              ("Horizontal Wavefront 1D", GenericWavefront1D, "set_input_h"),
+              ("Vertical Wavefront 1D", GenericWavefront1D, "set_input_v")
+              ]
 
-    outputs = [{"name":"GenericWavefront2D",
-                "type":GenericWavefront2D,
-                "doc":"GenericWavefront2D",
-                "id":"GenericWavefront2D"}]
+    outputs = [{"name":"WofryData",
+                "type":WofryData,
+                "doc":"WofryData",
+                "id":"WofryData"},
+               {"name": "GenericWavefront2D",
+                "type": GenericWavefront2D,
+                "doc": "GenericWavefront2D",
+                "id": "GenericWavefront2D"}
+               ]
 
     normalize_to = Setting(0)
 
@@ -90,16 +97,18 @@ class OW2Dto1D(WofryWidget):
             tab.setFixedHeight(self.IMAGE_HEIGHT)
             tab.setFixedWidth(self.IMAGE_WIDTH)
 
-    def set_input_h(self, wavefront1D):
-        if not wavefront1D is None:
-            self.wavefront1D_h = wavefront1D
+    def set_input_h(self, wofry_data):
+        if not wofry_data is None:
+            if isinstance(wofry_data, WofryData): self.wavefront1D_h = wofry_data.get_wavefront()
+            else: self.wavefront1D_h = wofry_data
 
             if self.is_automatic_execution:
                 self.send_data()
 
-    def set_input_v(self, wavefront1D):
-        if not wavefront1D is None:
-            self.wavefront1D_v = wavefront1D
+    def set_input_v(self, wofry_data):
+        if not wofry_data is None:
+            if isinstance(wofry_data, WofryData): self.wavefront1D_v = wofry_data.get_wavefront()
+            else: self.wavefront1D_v = wofry_data
 
             if self.is_automatic_execution:
                 self.send_data()
@@ -116,6 +125,7 @@ class OW2Dto1D(WofryWidget):
 
             self.progressBarFinished()
 
+            self.send("WofryData", WofryData(wavefront=self.wavefront2D))
             self.send("GenericWavefront2D", self.wavefront2D)
 
     def do_plot_results(self, progressBarValue):

@@ -10,6 +10,7 @@ from oasys.widgets import congruence
 
 from wofry.propagator.wavefront1D.generic_wavefront import GenericWavefront1D
 
+from orangecontrib.wofry.util.wofry_objects import WofryData
 from orangecontrib.wofry.widgets.gui.ow_wofry_widget import WofryWidget
 
 class OWGenericWavefront1D(WofryWidget):
@@ -23,10 +24,10 @@ class OWGenericWavefront1D(WofryWidget):
     category = "Wofry Wavefront Propagation"
     keywords = ["data", "file", "load", "read"]
 
-    outputs = [{"name":"GenericWavefront1D",
-                "type":GenericWavefront1D,
-                "doc":"GenericWavefront1D",
-                "id":"GenericWavefront1D"}]
+    outputs = [{"name":"WofryData",
+                "type":WofryData,
+                "doc":"WofryData",
+                "id":"WofryData"}]
 
     units = Setting(1)
     energy = Setting(1000.0)
@@ -360,12 +361,12 @@ class OWGenericWavefront1D(WofryWidget):
             except:
                 pass
 
-            self.send("GenericWavefront1D", self.wavefront1D)
+            self.send("WofryData", WofryData(wavefront=self.wavefront1D))
 
         except Exception as exception:
             QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)
 
-            #raise exception
+            if self.IS_DEVELOP: raise exception
 
             self.progressBarFinished()
 

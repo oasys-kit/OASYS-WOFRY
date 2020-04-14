@@ -87,7 +87,7 @@ class WofryWidget(AutomaticWidget):
                                        str(exception),
                 QtWidgets.QMessageBox.Ok)
 
-            #raise exception
+            if self.IS_DEVELOP: raise exception
 
         self.progressBarFinished()
 
@@ -132,8 +132,6 @@ class WofryWidget(AutomaticWidget):
         self.plot_canvas[plot_canvas_index].setActiveCurveColor(color='blue')
         self.plot_canvas[plot_canvas_index].setGraphXLabel(xtitle)
         self.plot_canvas[plot_canvas_index].setGraphYLabel(ytitle)
-
-
 
         # ALLOW FIT BUTTON HERE
         self.plot_canvas[plot_canvas_index].fitAction.setVisible(True)

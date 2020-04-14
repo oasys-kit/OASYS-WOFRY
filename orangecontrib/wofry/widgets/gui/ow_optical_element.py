@@ -1,8 +1,7 @@
-import numpy
+import sys, numpy
 
 from PyQt5.QtGui import QPalette, QColor, QFont
-from PyQt5.QtWidgets import QMessageBox, QApplication
-from PyQt5.QtCore import QRect
+from PyQt5.QtWidgets import QMessageBox
 
 from orangewidget import gui
 from orangewidget import widget
@@ -10,23 +9,23 @@ from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 from oasys.widgets.gui import ConfirmDialog
+from oasys.util.oasys_util import TriggerIn, EmittingStream
 
 from syned.widget.widget_decorator import WidgetDecorator
 from syned.beamline.element_coordinates import ElementCoordinates
 from syned.beamline.beamline_element import BeamlineElement
-from syned.beamline.shape import Ellipse,Circle,Rectangle,DoubleEllipse,DoubleCircle,DoubleRectangle
+from syned.beamline.shape import *
 
 from wofry.propagator.propagator import PropagationManager, PropagationElements, PropagationParameters
-from wofry.propagator.wavefront2D.generic_wavefront import GenericWavefront2D
 from wofry.propagator.propagators2D.fresnel import Fresnel2D
 from wofry.propagator.propagators2D.fresnel_convolution import FresnelConvolution2D
 from wofry.propagator.propagators2D.fraunhofer import Fraunhofer2D
 from wofry.propagator.propagators2D.integral import Integral2D
 from wofry.propagator.propagators2D.fresnel_zoom_xy import FresnelZoomXY2D
 
+from wofry.propagator.wavefront2D.generic_wavefront import GenericWavefront2D
+from orangecontrib.wofry.util.wofry_objects import WofryData
 from orangecontrib.wofry.widgets.gui.ow_wofry_widget import WofryWidget
-
-from oasys.util.oasys_util import TriggerIn
 
 def initialize_default_propagator_2D():
     propagator = PropagationManager.Instance()
@@ -49,16 +48,17 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
     keywords = ["data", "file", "load", "read"]
     category = "Wofry Optical Elements"
 
-    outputs = [{"name":"GenericWavefront2D",
-                "type":GenericWavefront2D,
-                "doc":"GenericWavefront2D",
-                "id":"GenericWavefront2D"},
+    outputs = [{"name":"WofryData",
+                "type":WofryData,
+                "doc":"WofryData",
+                "id":"WofryData"},
                {"name":"Trigger",
                 "type": TriggerIn,
                 "doc":"Feedback signal to start a new beam simulation",
                 "id":"Trigger"}]
 
-    inputs = [("GenericWavefront2D", GenericWavefront2D, "set_input"),
+    inputs = [("WofryData", WofryData, "set_input"),
+              ("GenericWavefront2D", GenericWavefront2D, "set_input"),
               WidgetDecorator.syned_input_data()[0]]
 
     oe_name         = Setting("")
@@ -70,7 +70,7 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
     shape = Setting(0)
     surface_shape = Setting(0)
 
-    input_wavefront = None
+    input_data = None
     wavefront_to_plot = None
 
     propagators_list = ["Fresnel", "Fresnel (Convolution)", "Fraunhofer", "Integral", "Fresnel Zoom XY"]
@@ -116,7 +116,6 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
         self.tabs_setting = oasysgui.tabWidget(self.controlArea)
         self.tabs_setting.setFixedHeight(self.TABS_AREA_HEIGHT)
         self.tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
-
 
         self.tab_bas = oasysgui.createTabPage(self.tabs_setting, "O.E. Setting")
         self.tab_pro = oasysgui.createTabPage(self.tabs_setting, "Propagation Setting")
@@ -175,7 +174,6 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
 
         self.set_Propagator()
 
-
     def set_Propagator(self):
         self.fresnel_box.setVisible(self.propagator <= 1)
         self.fraunhofer_box.setVisible(self.propagator == 2)
@@ -197,33 +195,44 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
             self.wofry_output.setText("")
             self.progressBarInit()
 
-            if self.input_wavefront is None: raise Exception("No Input Wavefront")
+            sys.stdout = EmittingStream(textWritten=self.writeStdOut)
+
+            if self.input_data is None: raise Exception("No Input Data")
 
             self.check_data()
 
             # propagation to o.e.
 
-            propagation_elements = PropagationElements()
+            input_wavefront  = self.input_data.get_wavefront()
+            beamline         = self.input_data.get_beamline().duplicate()
 
-            beamline_element = BeamlineElement(optical_element=self.get_optical_element(),
+            optical_element = self.get_optical_element()
+            optical_element.name = self.oe_name if not self.oe_name is None else self.windowTitle()
+
+            beamline_element = BeamlineElement(optical_element=optical_element,
                                                coordinates=ElementCoordinates(p=self.p,
                                                                               q=self.q,
                                                                               angle_radial=numpy.radians(self.angle_radial),
                                                                               angle_azimuthal=numpy.radians(self.angle_azimuthal)))
 
+            beamline.append_beamline_element(beamline_element)
+
+            propagation_elements = PropagationElements()
             propagation_elements.add_beamline_element(beamline_element)
 
-            propagation_parameters = PropagationParameters(wavefront=self.input_wavefront.duplicate(),
-                                                           propagation_elements = propagation_elements)
+            propagation_parameters = PropagationParameters(wavefront=input_wavefront.duplicate(),
+                                                           propagation_elements=propagation_elements)
 
             self.set_additional_parameters(propagation_parameters)
 
-            propagator = PropagationManager.Instance()
+            self.setStatusMessage("Begin Propagation")
 
+            propagator = PropagationManager.Instance()
 
             output_wavefront = propagator.do_propagation(propagation_parameters=propagation_parameters,
                                                          handler_name=self.get_handler_name())
 
+            self.setStatusMessage("Propagation Completed")
 
             self.wavefront_to_plot = output_wavefront
 
@@ -231,14 +240,11 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
             self.do_plot_results()
             self.progressBarFinished()
 
-
-            self.send("GenericWavefront2D", output_wavefront)
+            self.send("WofryData", WofryData(beamline=beamline, wavefront=output_wavefront))
             self.send("Trigger", TriggerIn(new_object=True))
 
-
             try:
-                python_code = self.propagate_python_code()
-                self.writeStdOut(python_code)
+                self.writeStdOut(self.propagate_python_code())
             except:
                 pass
         except Exception as e:
@@ -247,9 +253,9 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
             self.setStatusMessage("")
             self.progressBarFinished()
 
-            raise e
+            if self.IS_DEVELOP: raise e
 
-    def propagate_python_code(self,write_wavefront_template=True):
+    def propagate_python_code(self, write_wavefront_template=True):
         txt = "\n\n\n"
         txt += "\n\n#"
         txt += "\n# ===== Example of python code to create propagate current element ====="
@@ -264,7 +270,6 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
         txt += "\nfrom syned.beamline.element_coordinates import ElementCoordinates"
         txt += "\nfrom wofry.propagator.propagators2D.fresnel_zoom_xy import FresnelZoomXY2D"
 
-
         if write_wavefront_template:
             txt += "\n\n#"
             txt += "\n# create/import your input_wavefront (THIS IS A PLACEHOLDER - REPLACE WITH YOUR SOURCE)\n#"
@@ -272,7 +277,6 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
             txt += "\nfrom wofry.propagator.wavefront2D.generic_wavefront import GenericWavefront2D"
             txt += "\ninput_wavefront = GenericWavefront2D.initialize_wavefront_from_range(-10e-6,10e-6,-100e-6,100e-6,(200,100),1e-10)"
             txt += "\n\n"
-
 
         txt += "\n\n#"
         txt += "\n# info on current oe\n#"
@@ -288,7 +292,6 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
         txt += "\n#"
 
         txt += self.get_optical_element_python_code()
-
 
         txt += "\n#"
         txt += "\n# propagating (***  ONLY THE ZOOM PROPAGATOR IS IMPLEMENTED ***)\n#"
@@ -319,10 +322,7 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
         txt += "\noutput_wavefront = propagator.do_propagation(propagation_parameters=propagation_parameters,"
         txt += "    handler_name='FRESNEL_ZOOM_XY_2D')"
 
-
-
-
-        return (txt)
+        return txt
 
     def get_handler_name(self):
         if self.propagator == 0:
@@ -350,9 +350,10 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
     def get_optical_element(self):
         raise NotImplementedError()
 
-    def set_input(self, wavefront):
-        if not wavefront is None:
-            self.input_wavefront = wavefront
+    def set_input(self, wofry_data):
+        if not wofry_data is None:
+            if isinstance(wofry_data, WofryData): self.input_data = wofry_data
+            else: self.input_data = WofryData(wavefront=wofry_data)
 
             if self.is_automatic_execution:
                 self.propagate_wavefront()
@@ -377,15 +378,12 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
             tab.setFixedWidth(self.IMAGE_WIDTH)
 
     def do_plot_results(self, progressBarValue=80):
-
         if not self.view_type == 0:
             if not self.wavefront_to_plot is None:
-
 
                 self.progressBarSet(progressBarValue)
 
                 titles = ["Wavefront 2D Intensity","Wavefront 2D Phase"]
-
 
                 self.plot_data2D(data2D=self.wavefront_to_plot.get_intensity(),
                                  dataX=1e6*self.wavefront_to_plot.get_coordinate_x(),
@@ -397,7 +395,6 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
                                  xtitle="Horizontal [$\mu$m] ( %d pixels)"%(self.wavefront_to_plot.get_coordinate_x().size),
                                  ytitle="Vertical [$\mu$m] ( %d pixels)"%(self.wavefront_to_plot.get_coordinate_y().size))
 
-
                 self.plot_data2D(data2D=self.wavefront_to_plot.get_phase(from_minimum_intensity=0.1),
                              dataX=1e6*self.wavefront_to_plot.get_coordinate_x(),
                              dataY=1e6*self.wavefront_to_plot.get_coordinate_y(),
@@ -407,7 +404,6 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
                              title=titles[1],
                              xtitle="Horizontal [$\mu$m] ( %d pixels)"%(self.wavefront_to_plot.get_coordinate_x().size),
                              ytitle="Vertical [$\mu$m] ( %d pixels)"%(self.wavefront_to_plot.get_coordinate_y().size))
-
 
                 self.progressBarFinished()
 
@@ -767,8 +763,6 @@ class OWWOOpticalElementWithDoubleBoundaryShape(OWWOOpticalElement):
 
 # --------------------------------------------------------------
 
-
-
 class OWWOOpticalElementWithSurfaceShape(OWWOOpticalElementWithBoundaryShape):
 
     # SURFACE
@@ -1091,7 +1085,6 @@ class OWWOOpticalElementWithSurfaceShape(OWWOOpticalElementWithBoundaryShape):
 
                 self.min_radius_surface = round(surface_shape._min_radius, 6)
                 self.maj_radius_surface = round(surface_shape._maj_radius, 6)
-
 
         return surface_shape
 

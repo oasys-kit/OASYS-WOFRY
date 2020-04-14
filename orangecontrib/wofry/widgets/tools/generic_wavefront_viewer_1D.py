@@ -5,13 +5,10 @@ import numpy
 from PyQt5.QtGui import QPalette, QColor, QFont
 from PyQt5.QtWidgets import QMessageBox
 from orangewidget import gui
-from orangewidget import widget
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
-from oasys.widgets import congruence
 
-from wofry.propagator.wavefront1D.generic_wavefront import GenericWavefront1D
-
+from orangecontrib.wofry.util.wofry_objects import WofryData
 from orangecontrib.wofry.widgets.gui.ow_wofry_widget import WofryWidget
 
 class GenericWavefrontViewer1D(WofryWidget):
@@ -25,7 +22,7 @@ class GenericWavefrontViewer1D(WofryWidget):
     category = "Wofry Tools"
     keywords = ["data", "file", "load", "read"]
 
-    inputs = [("GenericWavefront1D", GenericWavefront1D, "set_input")]
+    inputs = [("WofryData", WofryData, "set_input")]
 
     wavefront1D = None
     accumulated_data = None
@@ -103,18 +100,14 @@ class GenericWavefrontViewer1D(WofryWidget):
             self.tab.append(gui.createTabPage(self.tabs, self.titles[3]))
             self.plot_canvas.append(None)
 
-
-            # self.tab.append(gui.createTabPage(self.tabs, self.titles[index]))
-            # self.plot_canvas.append(None)
-
         for tab in self.tab:
             tab.setFixedHeight(self.IMAGE_HEIGHT)
             tab.setFixedWidth(self.IMAGE_WIDTH)
 
 
-    def set_input(self, wavefront1D):
-        if not wavefront1D is None:
-            self.wavefront1D = wavefront1D
+    def set_input(self, wofry_data):
+        if not wofry_data is None:
+            self.wavefront1D = wofry_data.get_wavefront()
 
             if self.keep_result ==0:
                 self.accumulated_data = None

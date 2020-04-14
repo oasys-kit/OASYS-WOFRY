@@ -17,6 +17,8 @@ from oasys.widgets import widget as oasyswidget
 from wofry.propagator.wavefront2D.generic_wavefront import GenericWavefront2D
 from wofry.propagator.wavefront1D.generic_wavefront import GenericWavefront1D
 
+from orangecontrib.wofry.util.wofry_objects import WofryData
+
 class OWWavefrontFileReader(oasyswidget.OWWidget):
     name = "Generic Wavefront File Reader"
     description = "Utility: Wofry Wavefront File Reader"
@@ -32,16 +34,15 @@ class OWWavefrontFileReader(oasyswidget.OWWidget):
     file_name = Setting("")
     data_path = Setting("")
 
-    outputs = [{"name":"GenericWavefront2D",
-                "type":GenericWavefront2D,
-                "doc":"GenericWavefront2D",
-                "id":"data"},
-               {"name":"GenericWavefront1D",
-                "type":GenericWavefront1D,
-                "doc":"GenericWavefront1D",
-                "id":"data"},
+    outputs = [{"name":"WofryData2D",
+                "type":WofryData,
+                "doc":"WofryData2D",
+                "id":"WofryData2D"},
+               {"name": "WofryData1D",
+                "type": WofryData,
+                "doc": "WofryData1D",
+                "id": "WofryData1D"},
                ]
-
 
     def __init__(self):
         super().__init__()
@@ -96,8 +97,6 @@ class OWWavefrontFileReader(oasyswidget.OWWidget):
             self.file_name = dialog.selectedFile()
             self.data_path = dialog.selectedDataUrl().data_path()
             self.send_data()
-        # else:
-        #     print("Nothing selected")
 
     def send_data(self):
         try:
@@ -111,15 +110,17 @@ class OWWavefrontFileReader(oasyswidget.OWWidget):
             if dimension == 1:
                 wfr = GenericWavefront1D.load_h5_file(self.file_name,self.data_path)
                 print(">>> sending 1D wavefront")
-                self.send("GenericWavefront1D", wfr)
+                self.send("WofryData1D", WofryData(wavefront=wfr))
             elif dimension == 2:
                 wfr = GenericWavefront2D.load_h5_file(self.file_name,self.data_path)
                 print(">>> sending 2D wavefront")
-                self.send("GenericWavefront2D", wfr)
+                self.send("WofryData2D", WofryData(wavefront=wfr))
             else:
                 raise Exception("Invalid wavefront dimension")
         except Exception as e:
             QMessageBox.critical(self, "Error", str(e.args[0]), QMessageBox.Ok)
+
+            if self.IS_DEVELOP:raise e
 
 if __name__ == "__main__":
     from PyQt5.QtWidgets import QApplication

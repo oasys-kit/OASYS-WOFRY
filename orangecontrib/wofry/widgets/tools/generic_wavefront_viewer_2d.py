@@ -7,7 +7,7 @@ from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
 
-from wofry.propagator.wavefront2D.generic_wavefront import GenericWavefront2D
+from orangecontrib.wofry.util.wofry_objects import WofryData
 from orangecontrib.wofry.widgets.gui.ow_wofry_widget import WofryWidget
 
 class GenericWavefrontViewer2D(WofryWidget):
@@ -21,7 +21,7 @@ class GenericWavefrontViewer2D(WofryWidget):
     category = ""
     keywords = ["data", "file", "load", "read"]
 
-    inputs = [("GenericWavefront2D", GenericWavefront2D, "set_input")]
+    inputs = [("WofryData", WofryData, "set_input")]
 
     wavefront2D = None
     accumulated_data = None
@@ -51,8 +51,6 @@ class GenericWavefrontViewer2D(WofryWidget):
         button.setPalette(palette) # assign new palette
         button.setFixedHeight(45)
 
-
-
         gui.separator(self.controlArea)
 
         self.controlArea.setFixedWidth(self.CONTROL_AREA_WIDTH)
@@ -63,7 +61,6 @@ class GenericWavefrontViewer2D(WofryWidget):
 
         self.tab_sou = oasysgui.createTabPage(tabs_setting, "Wavefront Viewer Settings")
 
-
         incremental_box = oasysgui.widgetBox(self.tab_sou, "Incremental Result", addSpace=True, orientation="horizontal", height=80)
         gui.checkBox(incremental_box, self, "keep_result", "accumulate")
         gui.button(incremental_box, self, "Clear", callback=self.reset_accumumation)
@@ -73,7 +70,6 @@ class GenericWavefrontViewer2D(WofryWidget):
         gui.checkBox(incremental_box, self, "plot_phase", "Plot Phase")
         gui.checkBox(incremental_box, self, "plot_csd", "Plot Cross spectral density")
         gui.checkBox(incremental_box, self, "plot_iterations", "Plot Iteration intensities")
-
 
         gui.comboBox(self.tab_sou, self, "phase_unwrap",
                     label="Phase unwrap ", addSpace=False,
@@ -123,14 +119,13 @@ class GenericWavefrontViewer2D(WofryWidget):
 
         return Wx1x2,Wy1y2
 
-    def set_input(self, wf):
+    def set_input(self, wofry_data):
 
-        if not wf is None:
-
+        if not wofry_data is None:
             if not self.keep_result:
                 self.reset_accumumation()
 
-            self.wavefront2D = wf
+            self.wavefront2D = wofry_data.get_wavefront()
 
             Wx1x2,Wy1y2  = self.crossSpectralDensityHV()
 
