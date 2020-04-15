@@ -2,11 +2,17 @@ from syned.beamline.beamline import Beamline
 from wofry.propagator.wavefront import Wavefront
 
 class WofryData(object):
-    def __init__(self, beamline=Beamline(), wavefront=Wavefront()):
+    def __init__(self, beamline=None, wavefront=None):
         super().__init__()
+        if beamline is None:
+            self.__beamline = Beamline()
+        else:
+            self.__beamline = beamline
 
-        self.__beamline = beamline
-        self.__wavefront = wavefront
+        if wavefront is None:
+            self.__wavefront = Wavefront()
+        else:
+            self.__wavefront = wavefront
 
     def get_beamline(self):
         return self.__beamline
