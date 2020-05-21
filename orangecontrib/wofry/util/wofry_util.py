@@ -161,7 +161,7 @@ class ImageViewWithFWHM(QWidget):
         self.get_ImageView().setKeepDataAspectRatio(False)
 
     def plot_2D(self, histogram,xx=None,yy=None,
-                title="", xtitle="", ytitle="", xum="", yum="",
+                title="", xtitle="", ytitle="", xum="[mm]", yum="[mm]",
                 plotting_range=None,factor1=1.0,factor2=1.0,colormap=None):
 
         if xx is None:

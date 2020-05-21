@@ -24,7 +24,7 @@ class GenericWavefrontViewer1D(WofryWidget):
 
     inputs = [("WofryData", WofryData, "set_input")]
 
-    wavefront1D = None
+    wofry_data = None
     accumulated_data = None
     keep_result = Setting(0)
     phase_unwrap = Setting(0)
@@ -107,7 +107,7 @@ class GenericWavefrontViewer1D(WofryWidget):
 
     def set_input(self, wofry_data):
         if not wofry_data is None:
-            self.wavefront1D = wofry_data.get_wavefront()
+            self.wofry_data = wofry_data
 
             if self.keep_result ==0:
                 self.accumulated_data = None
@@ -115,15 +115,15 @@ class GenericWavefrontViewer1D(WofryWidget):
             if self.accumulated_data is None:
                 self.accumulated_data = {}
                 self.accumulated_data["counter"] = 1
-                self.accumulated_data["intensity"] = self.wavefront1D.get_intensity()
-                self.accumulated_data["complex_amplitude"] = self.wavefront1D.get_complex_amplitude()
+                self.accumulated_data["intensity"] = self.wofry_data.get_wavefront().get_intensity()
+                self.accumulated_data["complex_amplitude"] = self.wofry_data.get_wavefront().get_complex_amplitude()
 
-                self.accumulated_data["x"] = self.wavefront1D.get_abscissas()
+                self.accumulated_data["x"] = self.wofry_data.get_wavefront().get_abscissas()
 
             else:
                 self.accumulated_data["counter"] += 1
-                self.accumulated_data["intensity"] += self.wavefront1D.get_intensity()
-                self.accumulated_data["complex_amplitude"] += self.wavefront1D.get_complex_amplitude()
+                self.accumulated_data["intensity"] += self.wofry_data.get_wavefront().get_intensity()
+                self.accumulated_data["complex_amplitude"] += self.wofry_data.get_wavefront().get_complex_amplitude()
 
 
             self.refresh()
@@ -132,7 +132,7 @@ class GenericWavefrontViewer1D(WofryWidget):
         self.progressBarInit()
 
         try:
-            if self.wavefront1D is not None:
+            if self.wofry_data is not None:
                 current_index = self.tabs.currentIndex()
                 self.initializeTabs()
                 self.plot_results()
@@ -208,7 +208,7 @@ class GenericWavefrontViewer1D(WofryWidget):
 
         self.initializeTabs()
         self.accumulated_data = None
-        self.wavefront1D = None
+        self.wofry_data = None
 
 if __name__ == '__main__':
 
@@ -218,13 +218,10 @@ if __name__ == '__main__':
     app = QApplication([])
     ow =GenericWavefrontViewer1D()
 
-
-    # filename_np = "/users/srio/COMSYLD/comsyl/comsyl/calculations/septest_cm_new_u18_2m_1h_s2.5.npz"
-    # af = CompactAFReader.initialize_from_file(filename_np)
     wf = GenericWavefront1D.initialize_wavefront_from_arrays(numpy.linspace(-1e-3,1e-3,300),
                                                              numpy.linspace(-1e-3,1e-3,300)**2 )
 
-    ow.set_input(wf)
+    ow.set_input(WofryData(wavefront=wf))
     ow.show()
     app.exec_()
     ow.saveSettings()

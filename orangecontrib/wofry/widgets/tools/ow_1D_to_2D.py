@@ -135,33 +135,33 @@ class OW2Dto1D(WofryWidget):
 
             titles = ["Wavefront 1D (H) Intensity", "Wavefront 1D (V) Intensity", "Wavefront 2D Intensity"]
 
-            self.plot_data1D(x=self.wavefront1D_h.get_abscissas(),
+            self.plot_data1D(x=1e6 * self.wavefront1D_h.get_abscissas(),
                              y=self.wavefront1D_h.get_intensity(),
                              progressBarValue=progressBarValue + 12,
                              tabs_canvas_index=0,
                              plot_canvas_index=0,
                              title=titles[0],
-                             xtitle="Horizontal Coordinate",
+                             xtitle="Horizontal Coordinate [$\mu$m]",
                              ytitle="Intensity")
 
-            self.plot_data1D(x=self.wavefront1D_v.get_abscissas(),
+            self.plot_data1D(x=1e6 * self.wavefront1D_v.get_abscissas(),
                              y=self.wavefront1D_v.get_intensity(),
                              progressBarValue=progressBarValue + 12,
                              tabs_canvas_index=1,
                              plot_canvas_index=1,
                              title=titles[1],
-                             xtitle="Vertical Coordinate",
+                             xtitle="Vertical Coordinate [$\mu$m]",
                              ytitle="Intensity")
 
             self.plot_data2D(data2D=self.wavefront2D.get_intensity(),
-                             dataX=self.wavefront2D.get_coordinate_x(),
-                             dataY=self.wavefront2D.get_coordinate_y(),
+                             dataX=1e6 * self.wavefront2D.get_coordinate_x(),
+                             dataY=1e6 * self.wavefront2D.get_coordinate_y(),
                              progressBarValue=progressBarValue + 26,
                              tabs_canvas_index=2,
                              plot_canvas_index=2,
                              title=titles[2],
-                             xtitle="Horizontal Coordinate",
-                             ytitle="Vertical Coordinate")
+                             xtitle="Horizontal Coordinate [$\mu$m]",
+                             ytitle="Vertical Coordinate [$\mu$m]")
 
 
 

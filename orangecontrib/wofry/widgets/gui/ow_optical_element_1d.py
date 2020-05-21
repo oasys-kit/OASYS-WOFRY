@@ -255,8 +255,10 @@ class OWWOOpticalElement1D(WofryWidget, WidgetDecorator):
 
             self.wavefront_to_plot = output_wavefront
 
-            self.initializeTabs()
-            self.do_plot_results()
+            if self.view_type > 0:
+                self.initializeTabs()
+                self.do_plot_results()
+
             self.progressBarFinished()
 
             self.send("WofryData", WofryData(beamline=beamline, wavefront=output_wavefront))

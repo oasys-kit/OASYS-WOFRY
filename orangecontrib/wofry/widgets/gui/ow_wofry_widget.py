@@ -194,10 +194,10 @@ class WofryWidget(AutomaticWidget):
 
         self.tab[tabs_canvas_index].layout().removeItem(self.tab[tabs_canvas_index].layout().itemAt(0))
 
-        xmin = numpy.min(dataX)
-        xmax = numpy.max(dataX)
-        ymin = numpy.min(dataY)
-        ymax = numpy.max(dataY)
+        xmin = dataX[0] # numpy.min(dataX)
+        xmax = dataX[-1] # numpy.max(dataX)
+        ymin = dataY[0] # numpy.min(dataY)
+        ymax = dataY[-1] # numpy.max(dataY)
 
         origin = (xmin, ymin)
         scale = (abs((xmax-xmin)/len(dataX)), abs((ymax-ymin)/len(dataY)))
