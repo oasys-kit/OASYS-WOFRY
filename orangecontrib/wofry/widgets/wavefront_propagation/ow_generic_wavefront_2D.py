@@ -24,7 +24,11 @@ class OWGenericWavefront2D(WofryWidget):
     category = "Wofry Wavefront Propagation"
     keywords = ["data", "file", "load", "read"]
 
-    outputs = [{"name":"WofryData",
+    outputs = [{"name":"GenericWavefront2D",
+                "type":GenericWavefront2D,
+                "doc":"GenericWavefront2D",
+                "id":"GenericWavefront2D"},
+               {"name":"WofryData",
                 "type":WofryData,
                 "doc":"WofryData",
                 "id":"WofryData"}]
@@ -370,6 +374,7 @@ class OWGenericWavefront2D(WofryWidget):
             except:
                 pass
 
+            self.send("GenericWavefront2D", self.wavefront2D)
             self.send("WofryData", WofryData(wavefront=self.wavefront2D))
         except Exception as exception:
             QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)

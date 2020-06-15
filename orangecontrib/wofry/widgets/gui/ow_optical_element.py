@@ -48,7 +48,11 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
     keywords = ["data", "file", "load", "read"]
     category = "Wofry Optical Elements"
 
-    outputs = [{"name":"WofryData",
+    outputs = [{"name":"GenericWavefront2D",
+                "type":GenericWavefront2D,
+                "doc":"GenericWavefront2D",
+                "id":"GenericWavefront2D"},
+               {"name":"WofryData",
                 "type":WofryData,
                 "doc":"WofryData",
                 "id":"WofryData"},
@@ -240,6 +244,7 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
             self.do_plot_results()
             self.progressBarFinished()
 
+            self.send("GenericWavefront2D", output_wavefront)
             self.send("WofryData", WofryData(beamline=beamline, wavefront=output_wavefront))
             self.send("Trigger", TriggerIn(new_object=True))
 

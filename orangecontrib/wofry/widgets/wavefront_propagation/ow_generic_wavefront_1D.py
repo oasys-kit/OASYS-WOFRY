@@ -24,7 +24,11 @@ class OWGenericWavefront1D(WofryWidget):
     category = "Wofry Wavefront Propagation"
     keywords = ["data", "file", "load", "read"]
 
-    outputs = [{"name":"WofryData",
+    outputs = [{"name":"GenericWavefront1D",
+                "type":GenericWavefront1D,
+                "doc":"GenericWavefront1D",
+                "id":"GenericWavefront1D"},
+               {"name":"WofryData",
                 "type":WofryData,
                 "doc":"WofryData",
                 "id":"WofryData"}]
@@ -361,6 +365,7 @@ class OWGenericWavefront1D(WofryWidget):
             except:
                 pass
 
+            self.send("GenericWavefront1D", self.wavefront1D)
             self.send("WofryData", WofryData(wavefront=self.wavefront1D))
 
         except Exception as exception:
