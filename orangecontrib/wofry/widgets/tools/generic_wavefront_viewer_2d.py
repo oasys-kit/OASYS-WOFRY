@@ -34,7 +34,7 @@ class GenericWavefrontViewer2D(WofryWidget):
 
 
     def __init__(self):
-        super().__init__(is_automatic=False, show_view_options=False)
+        super().__init__(is_automatic=False, show_view_options=False, show_script_tab=False)
 
         self.accumulated_data = None
 

@@ -31,7 +31,7 @@ class GenericWavefrontViewer1D(WofryWidget):
     titles = ["Wavefront 1D Intensity", "Wavefront 1D Phase","Wavefront Real(Amplitude)","Wavefront Imag(Amplitude)"]
 
     def __init__(self):
-        super().__init__(is_automatic=False, show_view_options=False)
+        super().__init__(is_automatic=False, show_view_options=False, show_script_tab=False)
 
         gui.separator(self.controlArea)
 

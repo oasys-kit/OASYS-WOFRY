@@ -47,7 +47,7 @@ class OW2Dto1D(WofryWidget):
     wavefront1D_v = None
 
     def __init__(self):
-        super().__init__(is_automatic=True)
+        super().__init__(is_automatic=True, show_script_tab=False)
 
         self.runaction = widget.OWAction("Send Data", self)
         self.runaction.triggered.connect(self.send_data)
