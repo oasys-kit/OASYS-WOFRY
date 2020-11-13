@@ -40,19 +40,31 @@ class OWWOSlit(OWWOOpticalElementWithBoundaryShape):
 
 
 if __name__ == "__main__":
-    import numpy
     import sys
     from PyQt5.QtWidgets import QApplication
-    from wofry.propagator.wavefront2D.generic_wavefront import GenericWavefront2D
+
+    def get_example_wofry_data():
+        from wofry.propagator.light_source import WOLightSource
+        from wofry.beamline.beamline import WOBeamline
+        from orangecontrib.wofry.util.wofry_objects import WofryData
+
+        light_source = WOLightSource(dimension=2,
+                                     initialize_from=0,
+                                     range_from_h=-0.002,
+                                     range_to_h=0.002,
+                                     range_from_v=-0.0001,
+                                     range_to_v=0.0001,
+                                     number_of_points_h=200,
+                                     number_of_points_v=200,
+                                     energy=10000.0,
+                                     )
+
+        return WofryData(wavefront=light_source.get_wavefront(),
+                           beamline=WOBeamline(light_source=light_source))
 
     a = QApplication(sys.argv)
     ow = OWWOSlit()
-    ow.input_wavefront = GenericWavefront2D.initialize_wavefront_from_range(-0.002,0.002,-0.001,0.001,(200,200))
-    ca = numpy.ones(ow.input_wavefront.size())
-    ow.input_wavefront.set_complex_amplitude(ca+0j)
-
-    # from srxraylib.plot.gol import plot_image
-    # plot_image(ow.input_wavefront.get_intensity())
+    ow.set_input(get_example_wofry_data())
 
     ow.show()
     a.exec_()

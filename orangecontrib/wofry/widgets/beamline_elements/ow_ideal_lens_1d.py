@@ -5,10 +5,9 @@ from oasys.widgets import congruence
 
 from syned.beamline.optical_elements.ideal_elements.lens import IdealLens
 
-from wofry.beamline.optical_elements.ideal_elements.lens import WOIdealLens
+from wofry.beamline.optical_elements.ideal_elements.lens import WOIdealLens1D
 
 from orangecontrib.wofry.widgets.gui.ow_optical_element_1d import OWWOOpticalElement1D
-
 
 class OWWOIdealLens1D(OWWOOpticalElement1D):
 
@@ -17,7 +16,7 @@ class OWWOIdealLens1D(OWWOOpticalElement1D):
     icon = "icons/ideallens_1d.png"
     priority = 23
 
-    focal_x = Setting(0.0)
+    focal_x = Setting(1.0)
 
     def __init__(self):
         super().__init__()
@@ -30,17 +29,8 @@ class OWWOIdealLens1D(OWWOOpticalElement1D):
 
 
     def get_optical_element(self):
-        return WOIdealLens(name=self.oe_name,
-                           focal_x=self.focal_x,
-                           focal_y=None)
+        return WOIdealLens1D(name=self.oe_name, focal_length=self.focal_x)
 
-    def get_optical_element_python_code(self):
-        txt  = ""
-        txt += "\nfrom wofry.beamline.optical_elements.ideal_elements.lens import WOIdealLens"
-        txt += "\n"
-        txt += "\noptical_element = WOIdealLens(name='%s',focal_x=%f,focal_y=None)"%(self.oe_name,self.focal_x)
-        txt += "\n"
-        return txt
 
     def check_data(self):
         super().check_data()
@@ -60,8 +50,26 @@ class OWWOIdealLens1D(OWWOOpticalElement1D):
 if __name__ == "__main__":
     import sys
     from PyQt5.QtWidgets import QApplication
+
+    def get_example_wofry_data():
+        from wofry.propagator.light_source import WOLightSource
+        from wofry.beamline.beamline import WOBeamline
+        from orangecontrib.wofry.util.wofry_objects import WofryData
+
+        light_source = WOLightSource(dimension=1,
+                                     initialize_from=0,
+                                     range_from_h=-0.001,
+                                     range_to_h=0.001,
+                                     number_of_points_h=500,
+                                     energy=10000.0,
+                                     )
+
+        return WofryData(wavefront=light_source.get_wavefront(),
+                           beamline=WOBeamline(light_source=light_source))
+
     a = QApplication(sys.argv)
     ow = OWWOIdealLens1D()
+    ow.set_input(get_example_wofry_data())
 
     ow.show()
     a.exec_()

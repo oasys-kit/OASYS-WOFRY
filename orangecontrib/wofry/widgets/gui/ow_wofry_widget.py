@@ -14,6 +14,9 @@ from oasys.widgets.widget import AutomaticWidget
 from silx.gui.plot import Plot2D
 from orangecontrib.wofry.util.wofry_util import ImageViewWithFWHM
 
+from orangecontrib.wofry.widgets.gui.python_script import PythonScript
+
+
 class WofryWidget(AutomaticWidget):
     maintainer = "Luca Rebuffi"
     maintainer_email = "luca.rebuffi(@at@)anl.gov"
@@ -29,7 +32,7 @@ class WofryWidget(AutomaticWidget):
 
     view_type=Setting(1)
 
-    def __init__(self, is_automatic=True, show_view_options=True):
+    def __init__(self, is_automatic=True, show_view_options=True, show_script_tab=True):
         super().__init__(is_automatic)
 
         geom = QApplication.desktop().availableGeometry()
@@ -46,6 +49,15 @@ class WofryWidget(AutomaticWidget):
         self.main_tabs = oasysgui.tabWidget(self.mainArea)
         plot_tab = oasysgui.createTabPage(self.main_tabs, "Results")
         out_tab = oasysgui.createTabPage(self.main_tabs, "Output")
+        #
+        # add script tab to tabs panel
+        #
+        if show_script_tab:
+            script_tab = oasysgui.createTabPage(self.main_tabs, "Script")
+            self.wofry_python_script = PythonScript()
+            self.wofry_python_script.code_area.setFixedHeight(400)
+            script_box = gui.widgetBox(script_tab, "Python script", addSpace=True, orientation="horizontal")
+            script_box.layout().addWidget(self.wofry_python_script)
 
         if show_view_options == True:
             view_box = oasysgui.widgetBox(plot_tab, "Results Options", addSpace=False, orientation="horizontal")

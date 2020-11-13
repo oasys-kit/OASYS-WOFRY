@@ -8,10 +8,12 @@ from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 
-from wofry.propagator.wavefront2D.generic_wavefront import GenericWavefront2D
-
 from orangecontrib.wofry.util.wofry_objects import WofryData
 from orangecontrib.wofry.widgets.gui.ow_wofry_widget import WofryWidget
+
+from wofry.propagator.light_source import WOLightSource
+from wofry.beamline.beamline import WOBeamline
+
 
 class OWGenericWavefront2D(WofryWidget):
 
@@ -24,11 +26,7 @@ class OWGenericWavefront2D(WofryWidget):
     category = "Wofry Wavefront Propagation"
     keywords = ["data", "file", "load", "read"]
 
-    outputs = [{"name":"GenericWavefront2D",
-                "type":GenericWavefront2D,
-                "doc":"GenericWavefront2D",
-                "id":"GenericWavefront2D"},
-               {"name":"WofryData",
+    outputs = [{"name":"WofryData",
                 "type":WofryData,
                 "doc":"WofryData",
                 "id":"WofryData"}]
@@ -322,8 +320,47 @@ class OWGenericWavefront2D(WofryWidget):
                 congruence.checkPositiveNumber(self.gaussian_mode_h, "Mode (H)")
                 congruence.checkPositiveNumber(self.gaussian_mode_v, "Mode (V)")
 
-    def generate(self):
+    def get_light_source(self):
 
+        return WOLightSource(
+            name                = self.name                ,
+            # electron_beam       = None  ,
+            # magnetic_structure  = None  ,
+            dimension           = 2           ,
+            initialize_from     = self.initialize_from     ,
+            range_from_h        = self.range_from_h        ,
+            range_to_h          = self.range_to_h          ,
+            range_from_v        = self.range_from_v       ,
+            range_to_v          = self.range_to_v       ,
+            steps_start_h       = self.steps_start_h       ,
+            steps_step_h        = self.steps_step_h        ,
+            steps_start_v       = self.steps_start_v       ,
+            steps_step_v        = self.steps_step_v       ,
+            number_of_points_h  = self.number_of_points_h  ,
+            number_of_points_v  = self.number_of_points_v  ,
+            energy              = self.energy       ,
+            sigma_h             = self.gaussian_sigma_h             ,
+            sigma_v             = self.gaussian_sigma_v             ,
+            amplitude           = (self.gaussian_amplitude if self.kind_of_wave > 1 else 1.0),
+            kind_of_wave        = self.kind_of_wave  ,
+            n_h                 = self.gaussian_mode_h                 ,
+            n_v                 = self.gaussian_mode_v                 ,
+            beta_h              = self.gaussian_beta_h              ,
+            beta_v              = self.gaussian_beta_v          ,
+            units               = self.units,
+            wavelength          = self.wavelength,
+            initialize_amplitude= self.initialize_amplitude,
+            complex_amplitude_re= self.complex_amplitude_re,
+            complex_amplitude_im= self.complex_amplitude_im,
+            phase               = self.phase,
+            radius              = self.radius,
+            # center              = 0,
+            # inclination         = 0,
+            # gaussian_shift      = 0,
+            # add_random_phase    = 0,
+        )
+
+    def generate(self):
 
         try:
             self.wofry_output.setText("")
@@ -331,51 +368,22 @@ class OWGenericWavefront2D(WofryWidget):
 
             self.check_fields()
 
-            if self.initialize_from == 0:
-                self.wavefront2D = GenericWavefront2D.initialize_wavefront_from_range(x_min=self.range_from_h, x_max=self.range_to_h,
-                                                                                      y_min=self.range_from_v, y_max=self.range_to_v,
-                                                                                      number_of_points=(self.number_of_points_h, self.number_of_points_v))
-            else:
-                self.wavefront2D = GenericWavefront2D.initialize_wavefront_from_steps(x_start=self.steps_start_h, x_step=self.steps_step_h,
-                                                                                      y_start=self.steps_start_v, y_step=self.steps_step_v,
-                                                                                      number_of_points=(self.number_of_points_h, self.number_of_points_v))
-
-            if self.units == 0:
-                self.wavefront2D.set_photon_energy(self.energy)
-            else:
-                self.wavefront2D.set_wavelength(self.wavelength)
-
-            if self.kind_of_wave == 0: #plane
-                if self.initialize_amplitude == 0:
-                    self.wavefront2D.set_plane_wave_from_complex_amplitude(complex_amplitude=complex(self.complex_amplitude_re, self.complex_amplitude_im))
-                else:
-                    self.wavefront2D.set_plane_wave_from_amplitude_and_phase(amplitude=self.amplitude, phase=self.phase)
-            elif self.kind_of_wave == 1: # spheric
-                self.wavefront2D.set_spherical_wave(radius=self.radius, complex_amplitude=complex(self.complex_amplitude_re, self.complex_amplitude_im))
-            elif self.kind_of_wave == 2: # gaussian
-                self.wavefront2D.set_gaussian(sigma_x=self.gaussian_sigma_h,
-                                              sigma_y=self.gaussian_sigma_v,
-                                              amplitude=self.gaussian_amplitude)
-            elif self.kind_of_wave == 3: # g.s.m.
-                self.wavefront2D.set_gaussian_hermite_mode(sigma_x=self.gaussian_sigma_h,
-                                                           sigma_y=self.gaussian_sigma_v,
-                                                           amplitude=self.gaussian_amplitude,
-                                                           nx=self.gaussian_mode_h,
-                                                           ny=self.gaussian_mode_v,
-                                                           betax=self.gaussian_beta_h,
-                                                           betay=self.gaussian_beta_v,
-                                                           )
+            light_source = self.get_light_source()
+            self.wavefront2D = light_source.get_wavefront()
 
             self.initializeTabs()
             self.plot_results()
 
+            beamline = WOBeamline(light_source=light_source)
+
             try:
-                self.writeStdOut(self.generate_python_code())
+                self.wofry_python_script.set_code(beamline.to_python_code())
             except:
+                print(">>>>>>>>>>>>>>>  ERROR CREATING SCRIPT <<<<<<<<<<<<<<<<<")
                 pass
 
-            self.send("GenericWavefront2D", self.wavefront2D)
-            self.send("WofryData", WofryData(wavefront=self.wavefront2D))
+            self.send("WofryData", WofryData(wavefront=self.wavefront2D, beamline=beamline))
+
         except Exception as exception:
             QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)
 
@@ -426,7 +434,6 @@ class OWGenericWavefront2D(WofryWidget):
 
             self.progressBarSet(progressBarValue)
 
-            # titles = ["Wavefront 2D Intensity"]
             titles = ["Wavefront 2D Intensity", "Wavefront 2D Phase"]
 
             self.plot_data2D(data2D=self.wavefront2D.get_intensity(),
@@ -440,18 +447,6 @@ class OWGenericWavefront2D(WofryWidget):
                              ytitle="Vertical [$\mu$m] ( %d pixels)" % (self.wavefront2D.get_coordinate_y().size))
 
 
-
-            # self.plot_data2D(data2D=self.wavefront_to_plot.get_intensity(),
-            #                  dataX=1e6 * self.wavefront_to_plot.get_coordinate_x(),
-            #                  dataY=1e6 * self.wavefront_to_plot.get_coordinate_y(),
-            #                  progressBarValue=progressBarValue,
-            #                  tabs_canvas_index=0,
-            #                  plot_canvas_index=0,
-            #                  title=titles[0],
-            #                  xtitle="Horizontal [$\mu$m] ( %d pixels)" % (
-            #                      self.wavefront_to_plot.get_coordinate_x().size),
-            #                  ytitle="Vertical [$\mu$m] ( %d pixels)" % (self.wavefront_to_plot.get_coordinate_y().size))
-
             self.plot_data2D(data2D=self.wavefront2D.get_phase(from_minimum_intensity=0.1),
                              dataX=1e6 * self.wavefront2D.get_coordinate_x(),
                              dataY=1e6 * self.wavefront2D.get_coordinate_y(),
@@ -462,12 +457,6 @@ class OWGenericWavefront2D(WofryWidget):
                              xtitle="Horizontal [$\mu$m] ( %d pixels)" % (
                                  self.wavefront2D.get_coordinate_x().size),
                              ytitle="Vertical [$\mu$m] ( %d pixels)" % (self.wavefront2D.get_coordinate_y().size))
-
-
-
-
-
-            # self.plot_canvas[0].resetZoom()
 
             self.progressBarFinished()
 

@@ -23,9 +23,9 @@ from wofry.propagator.propagators2D.fraunhofer import Fraunhofer2D
 from wofry.propagator.propagators2D.integral import Integral2D
 from wofry.propagator.propagators2D.fresnel_zoom_xy import FresnelZoomXY2D
 
-from wofry.propagator.wavefront2D.generic_wavefront import GenericWavefront2D
 from orangecontrib.wofry.util.wofry_objects import WofryData
 from orangecontrib.wofry.widgets.gui.ow_wofry_widget import WofryWidget
+
 
 def initialize_default_propagator_2D():
     propagator = PropagationManager.Instance()
@@ -48,11 +48,7 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
     keywords = ["data", "file", "load", "read"]
     category = "Wofry Optical Elements"
 
-    outputs = [{"name":"GenericWavefront2D",
-                "type":GenericWavefront2D,
-                "doc":"GenericWavefront2D",
-                "id":"GenericWavefront2D"},
-               {"name":"WofryData",
+    outputs = [{"name":"WofryData",
                 "type":WofryData,
                 "doc":"WofryData",
                 "id":"WofryData"},
@@ -62,7 +58,6 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
                 "id":"Trigger"}]
 
     inputs = [("WofryData", WofryData, "set_input"),
-              ("GenericWavefront2D", GenericWavefront2D, "set_input"),
               WidgetDecorator.syned_input_data()[0]]
 
     oe_name         = Setting("")
@@ -87,8 +82,8 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
     magnification_x = Setting(1.0)
     magnification_y = Setting(1.0)
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, is_automatic=True, show_view_options=True, show_script_tab=True):
+        super().__init__(is_automatic=is_automatic, show_view_options=show_view_options, show_script_tab=show_script_tab)
 
         self.runaction = widget.OWAction("Propagate Wavefront", self)
         self.runaction.triggered.connect(self.propagate_wavefront)
@@ -195,139 +190,106 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
         congruence.checkAngle(self.angle_azimuthal, "Rotation along Beam Axis")
 
     def propagate_wavefront(self):
+
+        self.wofry_output.setText("")
+        self.progressBarInit()
+
+        sys.stdout = EmittingStream(textWritten=self.writeStdOut)
+
+        if self.input_data is None: raise Exception("No Input Data")
+
+        self.check_data()
+
+        # propagation to o.e.
+
+        input_wavefront  = self.input_data.get_wavefront()
+        beamline         = self.input_data.get_beamline().duplicate()
+
+        optical_element = self.get_optical_element()
+        optical_element.name = self.oe_name if not self.oe_name is None else self.windowTitle()
+
+        beamline_element = BeamlineElement(optical_element=optical_element,
+                                           coordinates=ElementCoordinates(p=self.p,
+                                                                          q=self.q,
+                                                                          angle_radial=numpy.radians(self.angle_radial),
+                                                                          angle_azimuthal=numpy.radians(self.angle_azimuthal)))
+
+        #
+        # this will store the propagation parameters in beamline in order to perform the propagation in the script
+        #
+
+        # 2D
+        # ==
+        # propagators_list = ["Fresnel",   "Fresnel (Convolution)",  "Fraunhofer",    "Integral",    "Fresnel Zoom XY"   ]
+        # class_name       = ["Fresnel2D", "FresnelConvolution2D",   "Fraunhofer2D",  "Integral2D",  "FresnelZoomXY2D"   ]
+        # handler_name     = ["FRESNEL_2D","FRESNEL_CONVOLUTION_2D", "FRAUNHOFER_2D", "INTEGRAL_2D", "FRESNEL_ZOOM_XY_2D"]
+        if self.propagator == 0:
+            propagator_info = {
+                "propagator_class_name": "Fresnel2D",
+                "propagator_handler_name": self.get_handler_name(),
+                "propagator_additional_parameters_names": [],
+                "propagator_additional_parameters_values": []}
+        elif self.propagator == 1:
+            propagator_info = {
+                "propagator_class_name": "FresnelConvolution2D",
+                "propagator_handler_name": self.get_handler_name(),
+                "propagator_additional_parameters_names": [],
+                "propagator_additional_parameters_values": []}
+        elif self.propagator == 2:
+            propagator_info = {
+                "propagator_class_name": "Fraunhofer2D",
+                "propagator_handler_name": self.get_handler_name(),
+                "propagator_additional_parameters_names": [],
+                "propagator_additional_parameters_values": []}
+        elif self.propagator == 3:
+            propagator_info = {
+                "propagator_class_name": "Integral2D",
+                "propagator_handler_name": self.get_handler_name(),
+                "propagator_additional_parameters_names": [],
+                "propagator_additional_parameters_values": []}
+        elif self.propagator == 4:
+            propagator_info = {
+                "propagator_class_name": "FresnelZoomXY2D",
+                "propagator_handler_name": self.get_handler_name(),
+                "propagator_additional_parameters_names": ['shift_half_pixel', 'magnification_x','magnification_y'],
+                "propagator_additional_parameters_values": [self.shift_half_pixel, self.magnification_x, self.magnification_y]}
+
+
+        beamline.append_beamline_element(beamline_element, propagator_info)
+
+
+        propagation_elements = PropagationElements()
+        propagation_elements.add_beamline_element(beamline_element)
+
+        propagation_parameters = PropagationParameters(wavefront=input_wavefront.duplicate(),
+                                                       propagation_elements=propagation_elements)
+
+        self.set_additional_parameters(propagation_parameters)
+
+        self.setStatusMessage("Begin Propagation")
+
+        propagator = PropagationManager.Instance()
+
+        output_wavefront = propagator.do_propagation(propagation_parameters=propagation_parameters,
+                                                     handler_name=self.get_handler_name())
+
+        self.setStatusMessage("Propagation Completed")
+
+        self.wavefront_to_plot = output_wavefront
+
+        self.initializeTabs()
+        self.do_plot_results()
+        self.progressBarFinished()
+
+        self.send("WofryData", WofryData(beamline=beamline, wavefront=output_wavefront))
+        self.send("Trigger", TriggerIn(new_object=True))
+
         try:
-            self.wofry_output.setText("")
-            self.progressBarInit()
+            self.wofry_python_script.set_code(beamline.to_python_code())
+        except:
+            pass
 
-            sys.stdout = EmittingStream(textWritten=self.writeStdOut)
-
-            if self.input_data is None: raise Exception("No Input Data")
-
-            self.check_data()
-
-            # propagation to o.e.
-
-            input_wavefront  = self.input_data.get_wavefront()
-            beamline         = self.input_data.get_beamline().duplicate()
-
-            optical_element = self.get_optical_element()
-            optical_element.name = self.oe_name if not self.oe_name is None else self.windowTitle()
-
-            beamline_element = BeamlineElement(optical_element=optical_element,
-                                               coordinates=ElementCoordinates(p=self.p,
-                                                                              q=self.q,
-                                                                              angle_radial=numpy.radians(self.angle_radial),
-                                                                              angle_azimuthal=numpy.radians(self.angle_azimuthal)))
-
-            beamline.append_beamline_element(beamline_element)
-
-            propagation_elements = PropagationElements()
-            propagation_elements.add_beamline_element(beamline_element)
-
-            propagation_parameters = PropagationParameters(wavefront=input_wavefront.duplicate(),
-                                                           propagation_elements=propagation_elements)
-
-            self.set_additional_parameters(propagation_parameters)
-
-            self.setStatusMessage("Begin Propagation")
-
-            propagator = PropagationManager.Instance()
-
-            output_wavefront = propagator.do_propagation(propagation_parameters=propagation_parameters,
-                                                         handler_name=self.get_handler_name())
-
-            self.setStatusMessage("Propagation Completed")
-
-            self.wavefront_to_plot = output_wavefront
-
-            self.initializeTabs()
-            self.do_plot_results()
-            self.progressBarFinished()
-
-            self.send("GenericWavefront2D", output_wavefront)
-            self.send("WofryData", WofryData(beamline=beamline, wavefront=output_wavefront))
-            self.send("Trigger", TriggerIn(new_object=True))
-
-            try:
-                self.writeStdOut(self.propagate_python_code())
-            except:
-                pass
-        except Exception as e:
-            QMessageBox.critical(self, "Error", str(e.args[0]), QMessageBox.Ok)
-
-            self.setStatusMessage("")
-            self.progressBarFinished()
-
-            if self.IS_DEVELOP: raise e
-
-    def propagate_python_code(self, write_wavefront_template=True):
-        txt = "\n\n\n"
-        txt += "\n\n#"
-        txt += "\n# ===== Example of python code to create propagate current element ====="
-        txt += "\n#"
-
-        txt += "\n\n#"
-        txt += "\n# Import section"
-        txt += "\n#"
-        txt += "\nimport numpy"
-        txt += "\nfrom wofry.propagator.propagator import PropagationManager, PropagationElements, PropagationParameters"
-        txt += "\nfrom syned.beamline.beamline_element import BeamlineElement"
-        txt += "\nfrom syned.beamline.element_coordinates import ElementCoordinates"
-        txt += "\nfrom wofry.propagator.propagators2D.fresnel_zoom_xy import FresnelZoomXY2D"
-
-        if write_wavefront_template:
-            txt += "\n\n#"
-            txt += "\n# create/import your input_wavefront (THIS IS A PLACEHOLDER - REPLACE WITH YOUR SOURCE)\n#"
-            txt += "\n#"
-            txt += "\nfrom wofry.propagator.wavefront2D.generic_wavefront import GenericWavefront2D"
-            txt += "\ninput_wavefront = GenericWavefront2D.initialize_wavefront_from_range(-10e-6,10e-6,-100e-6,100e-6,(200,100),1e-10)"
-            txt += "\n\n"
-
-        txt += "\n\n#"
-        txt += "\n# info on current oe\n#"
-        txt += "\n#"
-        txt_info = self.get_optical_element().info()
-        lines = txt_info.split("\n")
-
-        for line in lines:
-            txt += "\n#"+line
-
-        txt += "\n\n#"
-        txt += "\n# define current oe"
-        txt += "\n#"
-
-        txt += self.get_optical_element_python_code()
-
-        txt += "\n#"
-        txt += "\n# propagating (***  ONLY THE ZOOM PROPAGATOR IS IMPLEMENTED ***)\n#"
-        txt += "\n#"
-
-        txt += "\npropagation_elements = PropagationElements()"
-        txt += "\nbeamline_element = BeamlineElement(optical_element=optical_element,"
-        txt += "    coordinates=ElementCoordinates(p=%f,"%(self.p)
-        txt += "    q=%f,"%(self.q)
-        txt += "    angle_radial=numpy.radians(%f),"%(self.angle_radial)
-        txt += "    angle_azimuthal=numpy.radians(%f)))"%(self.angle_azimuthal)
-        txt += "\npropagation_elements.add_beamline_element(beamline_element)"
-        txt += "\npropagation_parameters = PropagationParameters(wavefront=input_wavefront.duplicate(),"
-        txt += "    propagation_elements = propagation_elements)"
-        txt += "\n#self.set_additional_parameters(propagation_parameters)"
-
-        txt += "\n#"
-        txt += "\npropagation_parameters.set_additional_parameters('shift_half_pixel', 1)"
-        txt += "\npropagation_parameters.set_additional_parameters('magnification_x', %f)"%(self.magnification_x)
-        txt += "\npropagation_parameters.set_additional_parameters('magnification_y', %f)"%(self.magnification_y)
-
-        txt += "\n#"
-        txt += "\npropagator = PropagationManager.Instance()"
-        txt += "\ntry:"
-        txt += "\n    propagator.add_propagator(FresnelZoomXY2D())"
-        txt += "\nexcept:"
-        txt += "\n    pass"
-        txt += "\noutput_wavefront = propagator.do_propagation(propagation_parameters=propagation_parameters,"
-        txt += "    handler_name='FRESNEL_ZOOM_XY_2D')"
-
-        return txt
+        self.setStatusMessage("")
 
     def get_handler_name(self):
         if self.propagator == 0:
@@ -357,8 +319,10 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
 
     def set_input(self, wofry_data):
         if not wofry_data is None:
-            if isinstance(wofry_data, WofryData): self.input_data = wofry_data
-            else: self.input_data = WofryData(wavefront=wofry_data)
+            if isinstance(wofry_data, WofryData):
+                self.input_data = wofry_data
+            else:
+                raise Exception("Only wofry_data allowed as input")
 
             if self.is_automatic_execution:
                 self.propagate_wavefront()
@@ -501,36 +465,33 @@ class OWWOOpticalElementWithBoundaryShape(OWWOOpticalElement):
                                      x_center=self.horizontal_shift,
                                      y_center=self.vertical_shift)
         elif self.shape == 2:
-            boundary_shape = Ellipse(min_ax_left=-0.5*self.min_ax + self.horizontal_shift,
-                                     min_ax_right=0.5*self.min_ax + self.horizontal_shift,
-                                     maj_ax_bottom=-0.5*self.maj_ax + self.vertical_shift,
-                                     maj_ax_top=0.5*self.maj_ax + self.vertical_shift)
+            boundary_shape = Ellipse(a_axis_min=-0.5*self.min_ax + self.horizontal_shift,
+                                     a_axis_max=0.5*self.min_ax + self.horizontal_shift,
+                                     b_axis_min=-0.5*self.maj_ax + self.vertical_shift,
+                                     b_axis_max=0.5*self.maj_ax + self.vertical_shift)
 
         return boundary_shape
 
-    def get_boundary_shape_python_code(self):
-        txt = ""
-        if self.shape == 0:
-            txt += "\nfrom syned.beamline.shape import Rectangle"
-            txt += "\nboundary_shape = Rectangle(x_left=%g,"%(-0.5*self.width + self.horizontal_shift)
-            txt += "x_right=%g,"%(0.5*self.width + self.horizontal_shift)
-            txt += "y_bottom=%g,"%(-0.5*self.height + self.vertical_shift)
-            txt += "y_top=%g)\n"%(0.5*self.height + self.vertical_shift)
-
-        elif self.shape == 1:
-            txt += "\nfrom syned.beamline.shape import Circle\n"
-            txt += "\nboundary_shape = Circle( %g,\n"%(self.radius)
-            txt += "                         x_center=%g,\n"%(self.horizontal_shift)
-            txt += "                         y_center=%g)\n"%(self.vertical_shift)
-
-        elif self.shape == 2:
-            txt += "\nfrom syned.beamline.shape import Ellipse\n"
-            txt += "\nboundary_shape = Ellipse(a_axis_min=%g,\n"%(-0.5*self.min_ax + self.horizontal_shift)
-            txt += "                         a_axis_max=%g,\n"%(0.5*self.min_ax + self.horizontal_shift)
-            txt += "                         b_axis_min=%g,\n"%(-0.5*self.maj_ax + self.vertical_shift)
-            txt += "                         b_axis_max=%g)\n"%(0.5*self.maj_ax + self.vertical_shift)
-
-        return txt
+    # def get_boundary_shape_python_code(self):
+    #     txt = ""
+    #     if self.shape == 0:
+    #         txt += "\nfrom syned.beamline.shape import Rectangle"
+    #         txt += "\nboundary_shape = Rectangle(x_left=%g,"%(-0.5*self.width + self.horizontal_shift)
+    #         txt += "x_right=%g,"%(0.5*self.width + self.horizontal_shift)
+    #         txt += "y_bottom=%g,"%(-0.5*self.height + self.vertical_shift)
+    #         txt += "y_top=%g)\n"%(0.5*self.height + self.vertical_shift)
+    #     elif self.shape == 1:
+    #         txt += "\nfrom syned.beamline.shape import Circle\n"
+    #         txt += "\nboundary_shape = Circle( %g,\n"%(self.radius)
+    #         txt += "                         x_center=%g,\n"%(self.horizontal_shift)
+    #         txt += "                         y_center=%g)\n"%(self.vertical_shift)
+    #     elif self.shape == 2:
+    #         txt += "\nfrom syned.beamline.shape import Ellipse\n"
+    #         txt += "\nboundary_shape = Ellipse(a_axis_min=%g,\n"%(-0.5*self.min_ax + self.horizontal_shift)
+    #         txt += "                         a_axis_max=%g,\n"%(0.5*self.min_ax + self.horizontal_shift)
+    #         txt += "                         b_axis_min=%g,\n"%(-0.5*self.maj_ax + self.vertical_shift)
+    #         txt += "                         b_axis_max=%g)\n"%(0.5*self.maj_ax + self.vertical_shift)
+    #     return txt
 
 
 
