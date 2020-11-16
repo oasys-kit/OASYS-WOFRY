@@ -11,8 +11,8 @@ from oasys.widgets import congruence
 from orangecontrib.wofry.util.wofry_objects import WofryData
 from orangecontrib.wofry.widgets.gui.ow_wofry_widget import WofryWidget
 
-from wofry.propagator.light_source import WOLightSource
-from wofry.beamline.beamline import WOBeamline
+from wofryimpl.propagator.light_source import WOLightSource
+from wofryimpl.beamline.beamline import WOBeamline
 
 
 class OWGenericWavefront2D(WofryWidget):

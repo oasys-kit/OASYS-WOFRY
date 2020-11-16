@@ -8,14 +8,14 @@ from orangewidget import widget
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
+from oasys.util.oasys_util import TriggerIn, TriggerOut, EmittingStream
+
+from wofryimpl.propagator.light_source import WOLightSource
+from wofryimpl.beamline.beamline import WOBeamline
 
 from orangecontrib.wofry.util.wofry_objects import WofryData
 from orangecontrib.wofry.widgets.gui.ow_wofry_widget import WofryWidget
-from wofry.propagator.light_source import WOLightSource
 
-from oasys.util.oasys_util import TriggerIn, TriggerOut, EmittingStream
-
-from wofry.beamline.beamline import WOBeamline
 
 
 

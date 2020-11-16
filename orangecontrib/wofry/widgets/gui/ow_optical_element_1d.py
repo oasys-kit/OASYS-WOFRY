@@ -17,12 +17,12 @@ from syned.beamline.beamline_element import BeamlineElement
 from syned.beamline.shape import *
 
 from wofry.propagator.propagator import PropagationManager, PropagationElements, PropagationParameters
-from wofry.propagator.propagators1D.fresnel import Fresnel1D
-from wofry.propagator.propagators1D.fresnel_convolution import FresnelConvolution1D
-from wofry.propagator.propagators1D.fraunhofer import Fraunhofer1D
-from wofry.propagator.propagators1D.integral import Integral1D
-from wofry.propagator.propagators1D.fresnel_zoom import FresnelZoom1D
-from wofry.propagator.propagators1D.fresnel_zoom_scaling_theorem import FresnelZoomScaling1D
+from wofryimpl.propagator.propagators1D.fresnel import Fresnel1D
+from wofryimpl.propagator.propagators1D.fresnel_convolution import FresnelConvolution1D
+from wofryimpl.propagator.propagators1D.fraunhofer import Fraunhofer1D
+from wofryimpl.propagator.propagators1D.integral import Integral1D
+from wofryimpl.propagator.propagators1D.fresnel_zoom import FresnelZoom1D
+from wofryimpl.propagator.propagators1D.fresnel_zoom_scaling_theorem import FresnelZoomScaling1D
 
 from orangecontrib.wofry.util.wofry_objects import WofryData
 from orangecontrib.wofry.widgets.gui.ow_wofry_widget import WofryWidget

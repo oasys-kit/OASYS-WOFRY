@@ -5,7 +5,7 @@ from oasys.widgets import congruence
 
 from syned.beamline.optical_elements.ideal_elements.lens import IdealLens
 
-from wofry.beamline.optical_elements.ideal_elements.lens import WOIdealLens
+from wofryimpl.beamline.optical_elements.ideal_elements.lens import WOIdealLens
 
 from orangecontrib.wofry.widgets.gui.ow_optical_element import OWWOOpticalElement
 
@@ -57,8 +57,8 @@ if __name__ == "__main__":
     from PyQt5.QtWidgets import QApplication
 
     def get_example_wofry_data():
-        from wofry.propagator.light_source import WOLightSource
-        from wofry.beamline.beamline import WOBeamline
+        from wofryimpl.propagator.light_source import WOLightSource
+        from wofryimpl.beamline.beamline import WOBeamline
         from orangecontrib.wofry.util.wofry_objects import WofryData
 
         light_source = WOLightSource(dimension=2,

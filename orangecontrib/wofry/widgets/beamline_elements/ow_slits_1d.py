@@ -3,7 +3,7 @@ from orangewidget.settings import Setting
 from orangecontrib.wofry.widgets.gui.ow_optical_element_1d import OWWOOpticalElementWithBoundaryShape1D
 from syned.beamline.optical_elements.absorbers.slit import Slit
 
-from wofry.beamline.optical_elements.absorbers.slit import WOSlit1D
+from wofryimpl.beamline.optical_elements.absorbers.slit import WOSlit1D
 
 class OWWOSlit1D(OWWOOpticalElementWithBoundaryShape1D):
 
@@ -41,8 +41,8 @@ if __name__ == "__main__":
     from PyQt5.QtWidgets import QApplication
 
     def get_example_wofry_data():
-        from wofry.propagator.light_source import WOLightSource
-        from wofry.beamline.beamline import WOBeamline
+        from wofryimpl.propagator.light_source import WOLightSource
+        from wofryimpl.beamline.beamline import WOBeamline
         from orangecontrib.wofry.util.wofry_objects import WofryData
 
         light_source = WOLightSource(dimension=1,

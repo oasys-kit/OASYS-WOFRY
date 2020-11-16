@@ -4,7 +4,7 @@ from oasys.widgets import gui as oasysgui
 from orangecontrib.wofry.widgets.gui.ow_optical_element_1d import OWWOOpticalElementWithBoundaryShape1D
 from syned.beamline.optical_elements.absorbers.beam_stopper import BeamStopper
 
-from wofry.beamline.optical_elements.absorbers.beam_stopper import WOBeamStopper1D
+from wofryimpl.beamline.optical_elements.absorbers.beam_stopper import WOBeamStopper1D
 
 class OWWOStop1D(OWWOOpticalElementWithBoundaryShape1D):
 
@@ -55,8 +55,8 @@ if __name__ == "__main__":
 
 
     def get_example_wofry_data():
-        from wofry.propagator.light_source import WOLightSource
-        from wofry.beamline.beamline import WOBeamline
+        from wofryimpl.propagator.light_source import WOLightSource
+        from wofryimpl.beamline.beamline import WOBeamline
         from orangecontrib.wofry.util.wofry_objects import WofryData
 
         light_source = WOLightSource(dimension=1,
