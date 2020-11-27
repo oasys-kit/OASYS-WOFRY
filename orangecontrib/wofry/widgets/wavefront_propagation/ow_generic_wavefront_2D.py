@@ -21,7 +21,7 @@ class OWGenericWavefront2D(WofryWidget):
     id = "GenericWavefront2D"
     description = "Generic Wavefront 2D"
     icon = "icons/gw2d.png"
-    priority = 2
+    priority = 101
 
     category = "Wofry Wavefront Propagation"
     keywords = ["data", "file", "load", "read"]
