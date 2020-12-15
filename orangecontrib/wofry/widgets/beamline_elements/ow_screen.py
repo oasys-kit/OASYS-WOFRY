@@ -23,7 +23,7 @@ class OWWOScreen(OWWOOpticalElement):
         super().__init__()
 
     def get_optical_element(self):
-        return WOScreen()
+        return WOScreen(name=self.oe_name)
 
     def check_syned_instance(self, optical_element):
         if not isinstance(optical_element, Screen):

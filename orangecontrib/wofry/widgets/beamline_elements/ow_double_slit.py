@@ -15,7 +15,7 @@ class OWWODoubleSlit(OWWOOpticalElementWithDoubleBoundaryShape):
         super().__init__()
 
     def get_optical_element(self):
-        return WOSlit(boundary_shape=self.get_boundary_shape())
+        return WOSlit(name=self.oe_name,boundary_shape=self.get_boundary_shape())
 
     def check_syned_instance(self, optical_element):
         if not isinstance(optical_element, Slit):

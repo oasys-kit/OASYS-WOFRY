@@ -20,7 +20,7 @@ class OWWOSlit1D(OWWOOpticalElementWithBoundaryShape1D):
         super().__init__()
 
     def get_optical_element(self):
-        return WOSlit1D(boundary_shape=self.get_boundary_shape())
+        return WOSlit1D(name=self.oe_name,boundary_shape=self.get_boundary_shape())
 
     # def get_optical_element_python_code(self):
     #

@@ -9,7 +9,7 @@ from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 from oasys.widgets.gui import ConfirmDialog
-from oasys.util.oasys_util import EmittingStream, TriggerIn
+from oasys.util.oasys_util import EmittingStream, TriggerIn, TriggerOut
 
 from syned.widget.widget_decorator import WidgetDecorator
 from syned.beamline.element_coordinates import ElementCoordinates
@@ -60,7 +60,8 @@ class OWWOOpticalElement1D(WofryWidget, WidgetDecorator):
                ]
 
     inputs = [("WofryData", WofryData, "set_input"),
-              WidgetDecorator.syned_input_data()[0]]
+              WidgetDecorator.syned_input_data()[0],
+              ("Trigger", TriggerOut, "receive_trigger_signal")]
 
     oe_name         = Setting("")
     p               = Setting(0.0)
@@ -75,7 +76,7 @@ class OWWOOpticalElement1D(WofryWidget, WidgetDecorator):
     wavefront_to_plot = None
 
     propagators_list = ["Fresnel", "Fresnel (Convolution)", "Fraunhofer", "Integral", "Fresnel Zoom","Fresnel Zoom Scaled"]
-    plot_titles = ["Wavefront 1D Intensity", "Wavefront 1D Phase","Wavefront Real(Amplitude)","Wavefront Imag(Amplitude)"]
+    # plot_titles = ["Wavefront 1D Intensity", "Wavefront 1D Phase","Wavefront Real(Amplitude)","Wavefront Imag(Amplitude)"]
 
     propagator = Setting(4)
     magnification_x = Setting(1.0) # For Fresnel Zoom & Integral
@@ -87,8 +88,8 @@ class OWWOOpticalElement1D(WofryWidget, WidgetDecorator):
 
     wavefront_radius = 1.0
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self,is_automatic=True, show_view_options=True, show_script_tab=True):
+        super().__init__(is_automatic=is_automatic, show_view_options=show_view_options, show_script_tab=show_script_tab)
 
         self.runaction = widget.OWAction("Propagate Wavefront", self)
         self.runaction.triggered.connect(self.propagate_wavefront)
@@ -129,8 +130,10 @@ class OWWOOpticalElement1D(WofryWidget, WidgetDecorator):
 
         self.coordinates_box = oasysgui.widgetBox(self.tab_bas, "Coordinates", addSpace=True, orientation="vertical")
 
-        oasysgui.lineEdit(self.coordinates_box, self, "p", "Distance from previous Continuation Plane [m]", labelWidth=280, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.coordinates_box, self, "q", "Distance to next Continuation Plane [m]", labelWidth=280, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.coordinates_box, self, "p", "Distance from previous Continuation Plane [m]",
+                          labelWidth=280, valueType=float, orientation="horizontal", tooltip="p")
+        oasysgui.lineEdit(self.coordinates_box, self, "q", "Distance to next Continuation Plane [m]",
+                          labelWidth=280, valueType=float, orientation="horizontal", tooltip="q")
         # Commented srio (not yet implemented) TODO: implement it!
         # oasysgui.lineEdit(self.coordinates_box, self, "angle_radial", "Incident Angle (to normal) [deg]", labelWidth=280, valueType=float, orientation="horizontal")
         # oasysgui.lineEdit(self.coordinates_box, self, "angle_azimuthal", "Rotation along Beam Axis [deg]", labelWidth=280, valueType=float, orientation="horizontal")
@@ -153,15 +156,15 @@ class OWWOOpticalElement1D(WofryWidget, WidgetDecorator):
 
 
         oasysgui.lineEdit(self.integral_box, self, "magnification_x", "Magnification Factor for interval",
-                          labelWidth=260, valueType=float, orientation="horizontal")
+                          labelWidth=260, valueType=float, orientation="horizontal", tooltip="magnification_x")
         oasysgui.lineEdit(self.integral_box, self, "magnification_N", "Magnification Factor for N points",
-                          labelWidth=260, valueType=float, orientation="horizontal")
+                          labelWidth=260, valueType=float, orientation="horizontal", tooltip="magnification_N")
 
         # Fresnel zoom
         self.zoom_box = oasysgui.widgetBox(self.tab_pro, "", addSpace=False, orientation="vertical", height=90)
 
         oasysgui.lineEdit(self.zoom_box, self, "magnification_x", "Magnification Factor for interval",
-                          labelWidth=260, valueType=float, orientation="horizontal")
+                          labelWidth=260, valueType=float, orientation="horizontal", tooltip="magnification_x")
 
 
         # Fresnel Sacled zoom
@@ -169,22 +172,22 @@ class OWWOOpticalElement1D(WofryWidget, WidgetDecorator):
         self.zoom_scaled_box = oasysgui.widgetBox(self.tab_pro, "", addSpace=False, orientation="vertical")
 
         oasysgui.lineEdit(self.zoom_scaled_box, self, "magnification_x", "Magnification Factor for interval",
-                          labelWidth=260, valueType=float, orientation="horizontal")
+                          labelWidth=260, valueType=float, orientation="horizontal", tooltip="magnification_x")
 
         gui.comboBox(self.zoom_scaled_box, self, "scaled_guess_R", label="Guess wavefront curvature", labelWidth=260,
                      items=["No","Yes"],
                      callback=self.set_ScaledGuess,
-                     sendSelectedValue=False, orientation="horizontal")
+                     sendSelectedValue=False, orientation="horizontal", tooltip="scaled_guess_R")
 
         self.zoom_scaled_box_1 = oasysgui.widgetBox(self.zoom_scaled_box, "", addSpace=False, orientation="vertical", height=90)
         self.zoom_scaled_box_2 = oasysgui.widgetBox(self.zoom_scaled_box, "", addSpace=False, orientation="vertical", height=90)
 
         oasysgui.lineEdit(self.zoom_scaled_box_1, self, "scaled_R", "Wavefront radius of curvature",
-                          labelWidth=260, valueType=float, orientation="horizontal")
+                          labelWidth=260, valueType=float, orientation="horizontal", tooltip="scaled_R")
         oasysgui.lineEdit(self.zoom_scaled_box_2, self, "scaled_Rmax", "Maximum wavefront radius of curvature",
-                          labelWidth=260, valueType=float, orientation="horizontal")
+                          labelWidth=260, valueType=float, orientation="horizontal", tooltip="scaled_Rmax")
         oasysgui.lineEdit(self.zoom_scaled_box_2, self, "scaled_N", "Number of points for guessing curvature",
-                          labelWidth=260, valueType=int, orientation="horizontal")
+                          labelWidth=260, valueType=int, orientation="horizontal", tooltip="scaled_N")
 
         self.set_Propagator()
 
@@ -210,9 +213,30 @@ class OWWOOpticalElement1D(WofryWidget, WidgetDecorator):
         congruence.checkAngle(self.angle_radial, "Incident Angle (to normal)")
         congruence.checkAngle(self.angle_azimuthal, "Rotation along Beam Axis")
 
+    def receive_trigger_signal(self, trigger):
+
+        if trigger and trigger.new_object == True:
+            if trigger.has_additional_parameter("variable_name"):
+                variable_name = trigger.get_additional_parameter("variable_name").strip()
+                variable_display_name = trigger.get_additional_parameter("variable_display_name").strip()
+                variable_value = trigger.get_additional_parameter("variable_value")
+                variable_um = trigger.get_additional_parameter("variable_um")
+
+                if "," in variable_name:
+                    variable_names = variable_name.split(",")
+
+                    for variable_name in variable_names:
+                        setattr(self, variable_name.strip(), variable_value)
+                else:
+                    setattr(self, variable_name, variable_value)
+
+                self.propagate_wavefront()
+
     def propagate_wavefront(self):
 
         self.progressBarInit()
+
+        self.wofry_output.setText("")
 
         sys.stdout = EmittingStream(textWritten=self.writeStdOut)
 
@@ -312,10 +336,10 @@ class OWWOOpticalElement1D(WofryWidget, WidgetDecorator):
         self.send("WofryData", WofryData(beamline=beamline, wavefront=output_wavefront))
         self.send("Trigger", TriggerIn(new_object=True))
 
-        try:
-            self.wofry_python_script.set_code(beamline.to_python_code())
-        except:
-            pass
+
+
+        self.wofry_python_script.set_code(beamline.to_python_code())
+
 
         self.setStatusMessage("")
 
@@ -369,6 +393,12 @@ class OWWOOpticalElement1D(WofryWidget, WidgetDecorator):
             if self.is_automatic_execution:
                 self.propagate_wavefront()
 
+    def get_titles(self):
+        return ["Wavefront 1D Intensity",
+                "Wavefront 1D Phase",
+                "Wavefront Real(Amplitude)",
+                "Wavefront Imag(Amplitude)"]
+
     def initializeTabs(self):
         size = len(self.tab)
         indexes = range(0, size)
@@ -379,8 +409,8 @@ class OWWOOpticalElement1D(WofryWidget, WidgetDecorator):
         self.tab = []
         self.plot_canvas = []
 
-        for index in range(0, len(self.plot_titles)):
-            self.tab.append(gui.createTabPage(self.tabs, self.plot_titles[index]))
+        for index in range(0, len(self.get_titles())):
+            self.tab.append(gui.createTabPage(self.tabs, self.get_titles()[index]))
             self.plot_canvas.append(None)
 
         for tab in self.tab:
@@ -398,7 +428,7 @@ class OWWOOpticalElement1D(WofryWidget, WidgetDecorator):
                              progressBarValue=progressBarValue,
                              tabs_canvas_index=0,
                              plot_canvas_index=0,
-                             title=self.plot_titles[0],
+                             title=self.get_titles()[0],
                              xtitle="Spatial Coordinate [$\mu$m]",
                              ytitle="Intensity")
 
@@ -408,7 +438,7 @@ class OWWOOpticalElement1D(WofryWidget, WidgetDecorator):
                              progressBarValue=progressBarValue + 10,
                              tabs_canvas_index=1,
                              plot_canvas_index=1,
-                             title=self.plot_titles[1],
+                             title=self.get_titles()[1],
                              xtitle="Spatial Coordinate [$\mu$m]",
                              ytitle="Phase [unwrapped, for intensity > 10% of peak] (rad)")
 
@@ -417,7 +447,7 @@ class OWWOOpticalElement1D(WofryWidget, WidgetDecorator):
                              progressBarValue=progressBarValue + 10,
                              tabs_canvas_index=2,
                              plot_canvas_index=2,
-                             title=self.plot_titles[2],
+                             title=self.get_titles()[2],
                              xtitle="Spatial Coordinate [$\mu$m]",
                              ytitle="Real(Amplitude)")
 
@@ -426,13 +456,13 @@ class OWWOOpticalElement1D(WofryWidget, WidgetDecorator):
                              progressBarValue=progressBarValue + 10,
                              tabs_canvas_index=3,
                              plot_canvas_index=3,
-                             title=self.plot_titles[3],
+                             title=self.get_titles()[3],
                              xtitle="Spatial Coordinate [$\mu$m]",
                              ytitle="Imag(Amplitude)")
 
 
-            for i in range(len(self.plot_titles)):
-                self.plot_canvas[i].resetZoom()
+            # for i in range(len(self.get_titles())):
+            #     self.plot_canvas[i].resetZoom()
 
             self.progressBarFinished()
 

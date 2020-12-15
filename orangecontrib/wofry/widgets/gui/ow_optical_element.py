@@ -392,7 +392,15 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
                 raise Exception("Syned Data not correct: Empty Beamline Element")
 
     def receive_specific_syned_data(self, optical_element):
-        raise NotImplementedError()
+        if not optical_element is None:
+            if isinstance(optical_element, Lens):
+                self.lens_radius = optical_element._radius
+                self.wall_thickness = optical_element._thickness
+                self.material = optical_element._material
+            else:
+                raise Exception("Syned Data not correct: Optical Element is not a Lens")
+        else:
+            raise Exception("Syned Data not correct: Empty Optical Element")
 
     def callResetSettings(self):
         if ConfirmDialog.confirmed(parent=self, message="Confirm Reset of the Fields?"):
