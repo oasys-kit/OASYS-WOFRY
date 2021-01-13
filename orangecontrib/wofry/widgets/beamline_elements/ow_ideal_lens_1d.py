@@ -25,7 +25,7 @@ class OWWOIdealLens1D(OWWOOpticalElement1D):
 
         self.filter_box = oasysgui.widgetBox(self.tab_bas, "Ideal Lens Setting", addSpace=True, orientation="vertical")
 
-        oasysgui.lineEdit(self.filter_box, self, "focal_x", "Horizontal Focal Length [m]", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.filter_box, self, "focal_x", "Horizontal Focal Length [m]", tooltip="focal_x", labelWidth=260, valueType=float, orientation="horizontal")
 
 
     def get_optical_element(self):

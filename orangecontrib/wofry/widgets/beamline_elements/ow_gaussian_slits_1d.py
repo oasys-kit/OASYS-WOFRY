@@ -3,14 +3,14 @@ from orangewidget.settings import Setting
 from orangecontrib.wofry.widgets.gui.ow_optical_element_1d import OWWOOpticalElementWithBoundaryShape1D
 from syned.beamline.optical_elements.absorbers.slit import Slit
 
-from wofryimpl.beamline.optical_elements.absorbers.slit import WOSlit1D
+from wofryimpl.beamline.optical_elements.absorbers.slit import WOGaussianSlit1D
 
-class OWWOSlit1D(OWWOOpticalElementWithBoundaryShape1D):
+class OWWOGaussianSlit1D(OWWOOpticalElementWithBoundaryShape1D):
 
-    name = "Slit 1D"
-    description = "Wofry: Slit 1D"
+    name = "Gaussian Slit 1D"
+    description = "Wofry: Gaussian Slit 1D"
     icon = "icons/slit1d.png"
-    priority = 21
+    priority = 22
 
     vertical_shift = Setting(0.0)
 
@@ -20,7 +20,17 @@ class OWWOSlit1D(OWWOOpticalElementWithBoundaryShape1D):
         super().__init__()
 
     def get_optical_element(self):
-        return WOSlit1D(name=self.oe_name,boundary_shape=self.get_boundary_shape())
+        return WOGaussianSlit1D(name=self.oe_name,boundary_shape=self.get_boundary_shape())
+
+    # def get_optical_element_python_code(self):
+    #
+    #     txt = self.get_boundary_shape_python_code()
+    #     txt += "\n"
+    #     txt += "from wofry.beamline.optical_elements.absorbers.slit import WOSlit1D"
+    #     txt += "\n"
+    #     txt += "optical_element = WOSlit1D(boundary_shape=boundary_shape)"
+    #     txt += "\n"
+    #     return txt
 
     def check_syned_instance(self, optical_element):
         if not isinstance(optical_element, Slit):
@@ -47,7 +57,7 @@ if __name__ == "__main__":
                            beamline=WOBeamline(light_source=light_source))
 
     a = QApplication(sys.argv)
-    ow = OWWOSlit1D()
+    ow = OWWOGaussianSlit1D()
     ow.set_input(get_example_wofry_data())
     ow.show()
     a.exec_()

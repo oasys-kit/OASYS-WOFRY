@@ -512,11 +512,11 @@ class OWWOOpticalElementWithBoundaryShape1D(OWWOOpticalElement1D):
         #              callback=self.set_Shape,
         #              sendSelectedValue=False, orientation="horizontal")
 
-        oasysgui.lineEdit(self.shape_box, self, "vertical_shift", "Shift [m]", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.shape_box, self, "vertical_shift", "Shift [m]", tooltip="vertical_shift", labelWidth=260, valueType=float, orientation="horizontal")
 
         self.rectangle_box = oasysgui.widgetBox(self.shape_box, "", addSpace=False, orientation="vertical", height=60)
 
-        oasysgui.lineEdit(self.rectangle_box, self, "height", "Aperture [m]", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.rectangle_box, self, "height", "Aperture [m]", tooltip="height", labelWidth=260, valueType=float, orientation="horizontal")
 
         self.circle_box = oasysgui.widgetBox(self.shape_box, "", addSpace=False, orientation="vertical", height=60)
 
