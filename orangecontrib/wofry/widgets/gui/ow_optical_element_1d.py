@@ -17,6 +17,7 @@ from syned.beamline.beamline_element import BeamlineElement
 from syned.beamline.shape import *
 
 from wofry.propagator.propagator import PropagationManager, PropagationElements, PropagationParameters
+from wofry.propagator.wavefront1D.generic_wavefront import GenericWavefront1D
 from wofryimpl.propagator.propagators1D.fresnel import Fresnel1D
 from wofryimpl.propagator.propagators1D.fresnel_convolution import FresnelConvolution1D
 from wofryimpl.propagator.propagators1D.fraunhofer import Fraunhofer1D
@@ -26,6 +27,9 @@ from wofryimpl.propagator.propagators1D.fresnel_zoom_scaling_theorem import Fres
 
 from orangecontrib.wofry.util.wofry_objects import WofryData
 from orangecontrib.wofry.widgets.gui.ow_wofry_widget import WofryWidget
+
+
+from wofryimpl.beamline.beamline import WOBeamline
 
 def initialize_default_propagator_1D():
     propagator = PropagationManager.Instance()
@@ -60,6 +64,7 @@ class OWWOOpticalElement1D(WofryWidget, WidgetDecorator):
                ]
 
     inputs = [("WofryData", WofryData, "set_input"),
+              ("GenericWavefront1D", GenericWavefront1D, "set_input"),
               WidgetDecorator.syned_input_data()[0],
               ("Trigger", TriggerOut, "receive_trigger_signal")]
 
@@ -387,8 +392,10 @@ class OWWOOpticalElement1D(WofryWidget, WidgetDecorator):
         if not wofry_data is None:
             if isinstance(wofry_data, WofryData):
                 self.input_data = wofry_data
+            elif isinstance(wofry_data, GenericWavefront1D):
+                self.input_data = WofryData(wavefront=wofry_data)
             else:
-                raise Exception("Only wofry_data allowed as input")
+                raise Exception("Bad input")
 
             if self.is_automatic_execution:
                 self.propagate_wavefront()

@@ -6,7 +6,7 @@ from orangewidget import widget
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
 
-from wofry.propagator.wavefront2D.generic_wavefront import GenericWavefront1D
+from wofry.propagator.wavefront1D.generic_wavefront import GenericWavefront1D
 from wofry.propagator.wavefront2D.generic_wavefront import GenericWavefront2D
 from orangecontrib.wofry.util.wofry_objects import WofryData
 
@@ -96,8 +96,10 @@ class OW2Dto1D(WofryWidget):
 
     def set_input(self, wofry_data):
         if not wofry_data is None:
-            if isinstance(wofry_data, WofryData): self.wavefront2D = wofry_data.get_wavefront()
-            else: self.wavefront2D = wofry_data
+            if isinstance(wofry_data, WofryData):
+                self.wavefront2D = wofry_data.get_wavefront()
+            else:
+                self.wavefront2D = wofry_data
 
             if self.is_automatic_execution: self.send_data()
 
