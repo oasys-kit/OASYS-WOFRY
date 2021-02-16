@@ -112,7 +112,9 @@ class WofryWidget(AutomaticWidget):
         raise NotImplementedError()
 
     def plot_data1D(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="",
-                    log_x=False, log_y=False, color='blue', replace=True, control=False, calculate_fwhm=True,
+                    log_x=False, log_y=False,
+                    color='blue',
+                    replace=True, control=False, calculate_fwhm=True,
                     xrange=None, yrange=None, symbol=''):
 
         if tabs_canvas_index is None: tabs_canvas_index = 0 #back compatibility?
@@ -188,6 +190,87 @@ class WofryWidget(AutomaticWidget):
                 self.plot_canvas[plot_canvas_index].setGraphYLimits(min(y)*0.99, max(y)*1.01)
 
         self.progressBarSet(progressBarValue)
+
+
+    def plot_multi_data1D(self, x, y_list,
+                    progressBarValue, tabs_canvas_index, plot_canvas_index,
+                    title="", xtitle="",
+                    ytitle="",
+                    ytitles= [""],
+                    colors = ['green'],
+                    replace=True,
+                    control=False,
+                    xrange=None,
+                    yrange=None,
+                    symbol=['']):
+
+        if len(y_list) != len(ytitles):
+            ytitles = ytitles * len(y_list)
+
+        if len(y_list) != len(colors):
+            colors = colors * len(y_list)
+
+        if len(y_list) != len(symbol):
+            symbol = symbol * len(y_list)
+
+        if tabs_canvas_index is None: tabs_canvas_index = 0 #back compatibility?
+
+        self.tab[tabs_canvas_index].layout().removeItem(self.tab[tabs_canvas_index].layout().itemAt(0))
+
+        self.plot_canvas[plot_canvas_index] = oasysgui.plotWindow(parent=None,
+                                                                  backend=None,
+                                                                  resetzoom=True,
+                                                                  autoScale=False,
+                                                                  logScale=True,
+                                                                  grid=True,
+                                                                  curveStyle=True,
+                                                                  colormap=False,
+                                                                  aspectRatio=False,
+                                                                  yInverted=False,
+                                                                  copy=True,
+                                                                  save=True,
+                                                                  print_=True,
+                                                                  control=control,
+                                                                  position=True,
+                                                                  roi=False,
+                                                                  mask=False,
+                                                                  fit=False)
+
+
+        self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
+        self.plot_canvas[plot_canvas_index].setActiveCurveColor(color='blue')
+        self.plot_canvas[plot_canvas_index].setGraphXLabel(xtitle)
+        self.plot_canvas[plot_canvas_index].setGraphYLabel(ytitle)
+
+        self.tab[tabs_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
+
+
+        for i in range(len(y_list)):
+            self.plot_canvas[plot_canvas_index].addCurve(x, y_list[i],
+                                         ytitles[i],
+                                         xlabel=xtitle,
+                                         ylabel=ytitle,
+                                         symbol='',
+                                         color=colors[i])
+        #
+        self.plot_canvas[plot_canvas_index].getLegendsDockWidget().setFixedHeight(150)
+        self.plot_canvas[plot_canvas_index].getLegendsDockWidget().setVisible(True)
+        self.plot_canvas[plot_canvas_index].setActiveCurve(ytitles[0])
+        self.plot_canvas[plot_canvas_index].replot()
+
+
+        if xrange is not None:
+            self.plot_canvas[plot_canvas_index].setGraphXLimits(xrange[0],xrange[1])
+        if yrange is not None:
+            self.plot_canvas[plot_canvas_index].setGraphYLimits(yrange[0],yrange[1])
+
+        # if numpy.amin(numpy.array(y_list)) < 0:
+        #     self.plot_canvas[plot_canvas_index].setGraphYLimits(numpy.amin(numpy.array(y_list))*1.01, numpy.amax(numpy.array(y_list))*1.01)
+        # else:
+        #     self.plot_canvas[plot_canvas_index].setGraphYLimits(numpy.amin(numpy.array(y_list))*0.99, numpy.amax(numpy.array(y_list))*1.01)
+
+        self.progressBarSet(progressBarValue)
+
 
     def plot_data2D(self, data2D, dataX, dataY, progressBarValue, tabs_canvas_index, plot_canvas_index,
                     title="",xtitle="", ytitle=""):
