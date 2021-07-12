@@ -19,3 +19,15 @@ class WofryData(object):
 
     def get_wavefront(self):
         return self.__wavefront
+
+    def set_beamline(self, beamline):
+        self.__beamline = beamline.duplicate()
+
+    def set_wavefront(self, wavefront):
+        self.__wavefront = wavefront.duplicate()
+
+    def duplicate(self):
+        return WofryData(wavefront=self.get_wavefront(),
+                         beamline=self.get_beamline())
+
+
