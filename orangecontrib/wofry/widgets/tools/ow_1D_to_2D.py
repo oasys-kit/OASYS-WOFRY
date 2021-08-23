@@ -1,16 +1,19 @@
-__author__ = 'labx'
+import sys
 
 from PyQt5.QtGui import QPalette, QColor, QFont
 from orangewidget import gui
 from orangewidget import widget
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
+from oasys.util.oasys_util import EmittingStream, TriggerIn, TriggerOut
 
 from wofry.propagator.wavefront2D.generic_wavefront import GenericWavefront2D
 from wofry.propagator.wavefront1D.generic_wavefront import GenericWavefront1D
 
 from orangecontrib.wofry.util.wofry_objects import WofryData
 from orangecontrib.wofry.widgets.gui.ow_wofry_widget import WofryWidget
+
+
 
 class OW2Dto1D(WofryWidget):
 
@@ -75,7 +78,7 @@ class OW2Dto1D(WofryWidget):
         self.tab_sou = oasysgui.createTabPage(tabs_setting, "Wavefronts Combination Setting")
 
         gui.comboBox(self.tab_sou, self, "normalize_to", label="Normalize to", labelWidth=220,
-                     items=["Horizontal", "Vertical", "None"],
+                     items=["Horizontal", "Vertical", "One", "No normalization"],
                      sendSelectedValue=False, orientation="horizontal")
 
     def initializeTabs(self):
@@ -117,11 +120,19 @@ class OW2Dto1D(WofryWidget):
         if not self.wavefront1D_h is None and not self.wavefront1D_v is None:
             self.progressBarInit()
 
+            self.wofry_output.setText("")
+
+            sys.stdout = EmittingStream(textWritten=self.writeStdOut)
+
             self.wavefront2D = GenericWavefront2D.combine_1D_wavefronts_into_2D(self.wavefront1D_h,
                                                                                 self.wavefront1D_v,
                                                                                 normalize_to=self.normalize_to)
 
             self.plot_results(progressBarValue=50)
+
+            print("input H wavefront intensity: %g " % self.wavefront1D_h.get_integrated_intensity())
+            print("input V wavefront intensity: %g " % self.wavefront1D_v.get_integrated_intensity())
+            print("output V wavefront intensity: %g " % self.wavefront2D.get_integrated_intensity())
 
             self.progressBarFinished()
 
