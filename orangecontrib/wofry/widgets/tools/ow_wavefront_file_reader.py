@@ -47,8 +47,8 @@ class OWWavefrontFileReader(oasyswidget.OWWidget):
     def __init__(self):
         super().__init__()
 
-        self.runaction = widget.OWAction("Read Wavefront hdf5 File", self)
-        self.runaction.triggered.connect(self.read_file)
+        self.runaction = widget.OWAction("Send Data", self)
+        self.runaction.triggered.connect(self.send_data)
         self.addAction(self.runaction)
 
         self.setFixedWidth(590)
@@ -105,7 +105,7 @@ class OWWavefrontFileReader(oasyswidget.OWWidget):
 
             # get wavefront dimension
             f = h5py.File(self.file_name, 'r')
-            dimension = f[self.data_path+"/wfr_dimension"].value
+            dimension = f["/"+self.data_path+"/wfr_dimension"][()]
             f.close()
             if dimension == 1:
                 wfr = GenericWavefront1D.load_h5_file(self.file_name,self.data_path)
@@ -128,10 +128,8 @@ if __name__ == "__main__":
 
     a = QApplication(sys.argv)
     ow = OWWavefrontFileReader()
-    # ow.file_name = "/Users/srio/OASYS_DMG/srw-scripts/hdf5/tmp_wofry.h5"
-    # ow.data_path = "/wfr2"
-    ow.file_name = "/Users/srio/OASYS_DMG/srw-scripts/hdf5/tmp.h5"
-    ow.data_path = "/wfr1"
+    ow.file_name = "/users/srio/Oasys/tmp.h5"
+    ow.data_path = "wfr"
     ow.show()
     a.exec_()
 

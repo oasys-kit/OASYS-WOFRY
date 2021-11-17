@@ -34,7 +34,7 @@ class GenericWavefrontViewer2D(WofryWidget):
 
 
     def __init__(self):
-        super().__init__(is_automatic=False, show_view_options=False, show_script_tab=False)
+        super().__init__(is_automatic=False, show_view_options=True, show_script_tab=False)
 
         self.accumulated_data = None
 
@@ -288,24 +288,27 @@ class GenericWavefrontViewer2D(WofryWidget):
 if __name__ == '__main__':
 
     from PyQt5.QtWidgets import QApplication
-    from orangecontrib.comsyl.util.CompactAFReader import CompactAFReader
+
 
     app = QApplication([])
     ow = GenericWavefrontViewer2D()
 
 
-    filename_np = "/users/srio/COMSYLD/comsyl/comsyl/calculations/septest_cm_new_u18_2m_1h_s2.5.npz"
-    af = CompactAFReader.initialize_from_file(filename_np)
-    wf = GenericWavefront2D.initialize_wavefront_from_arrays(af.x_coordinates(),
-                                                             af.y_coordinates(),
-                                                             af.mode(0))
-    wf.set_photon_energy(af.photon_energy())
+    # from orangecontrib.comsyl.util.CompactAFReader import CompactAFReader
+    # filename_np = "/users/srio/COMSYLD/comsyl/comsyl/calculations/septest_cm_new_u18_2m_1h_s2.5.npz"
+    # af = CompactAFReader.initialize_from_file(filename_np)
+    # wf = GenericWavefront2D.initialize_wavefront_from_arrays(af.x_coordinates(),
+    #                                                          af.y_coordinates(),
+    #                                                          af.mode(0))
+    # wf.set_photon_energy(af.photon_energy())
+
+    from wofry.propagator.wavefront2D.generic_wavefront import GenericWavefront2D
+    from orangecontrib.wofry.util.wofry_objects import WofryData
+    wf = GenericWavefront2D.initialize_wavefront_from_range(-1e-3,1e-3,-1e-3,1e-3,(200,200))
+    wf.set_gaussian(1e-4,1e-4)
 
 
-    # wf = GenericWavefront2D.initialize_wavefront_from_range(-1e-3,1e-3,-1e-3,1e-3,(200,200))
-    # wf.set_gaussian(1e-4,1e-4)
-
-    ow.set_input(wf)
+    ow.set_input(WofryData(wavefront=wf))
     ow.show()
     app.exec_()
     ow.saveSettings()
