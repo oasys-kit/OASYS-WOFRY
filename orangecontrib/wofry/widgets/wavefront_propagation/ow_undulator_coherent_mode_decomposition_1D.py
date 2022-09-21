@@ -2,7 +2,6 @@ import numpy
 import sys
 
 from PyQt5.QtGui import QPalette, QColor, QFont
-from PyQt5.QtWidgets import QMessageBox
 
 from orangewidget import gui
 from orangewidget import widget
@@ -12,10 +11,8 @@ from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 from oasys.util.oasys_util import TriggerIn, TriggerOut, EmittingStream
 
-from syned.storage_ring.magnetic_structures.undulator import Undulator
 from syned.beamline.beamline import Beamline
 
-from wofryimpl.propagator.light_source import WOLightSource
 from wofryimpl.beamline.beamline import WOBeamline
 
 from orangecontrib.wofry.util.wofry_objects import WofryData
@@ -26,7 +23,7 @@ import scipy.constants as codata
 from wofryimpl.propagator.util.undulator_coherent_mode_decomposition_1d import UndulatorCoherentModeDecomposition1D
 from syned.storage_ring.electron_beam import ElectronBeam
 from syned.storage_ring.magnetic_structures.undulator import Undulator
-from orangecontrib.wofry.util.light_source import WOLightSourceCMD
+from wofryimpl.propagator.light_source_cmd import WOLightSourceCMD
 
 
 class OWUndulatorCoherentModeDecomposition1D(WofryWidget):
@@ -214,18 +211,18 @@ class OWUndulatorCoherentModeDecomposition1D(WofryWidget):
 
 
         self.le_sigma_h = oasysgui.lineEdit(self.emittances_box_h, self, "sigma_h", "Size RMS H [m]",
-                            labelWidth=250, tooltip="sigma_h",
+                            labelWidth=225, tooltip="sigma_h",
                             valueType=float, orientation="horizontal")
         oasysgui.lineEdit(self.emittances_box_h, self, "sigma_divergence_h", "Divergence RMS H [rad]",
-                            labelWidth=250, tooltip="sigma_divergence_h",
+                            labelWidth=225, tooltip="sigma_divergence_h",
                             valueType=float, orientation="horizontal")
 
 
         self.le_sigma_v = oasysgui.lineEdit(self.emittances_box_v, self, "sigma_v", "Size RMS V [m]",
-                            labelWidth=250, tooltip="sigma_v",
+                            labelWidth=225, tooltip="sigma_v",
                             valueType=float, orientation="horizontal")
         oasysgui.lineEdit(self.emittances_box_v, self, "sigma_divergence_v", "Divergence RMS V [rad]",
-                            labelWidth=250, tooltip="sigma_divergence_v",
+                            labelWidth=225, tooltip="sigma_divergence_v",
                             valueType=float, orientation="horizontal")
 
 
@@ -638,7 +635,6 @@ class OWUndulatorCoherentModeDecomposition1D(WofryWidget):
 
 
 if __name__ == "__main__":
-    import sys
     from PyQt5.QtWidgets import QApplication
 
     a = QApplication(sys.argv)

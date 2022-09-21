@@ -15,7 +15,7 @@ from orangecontrib.wofry.util.wofry_objects import WofryData
 from orangecontrib.wofry.widgets.gui.python_script import PythonConsole
 
 from wofryimpl.propagator.light_source import WOLightSource
-from orangecontrib.esrf.wofry.util.light_source import WOLightSourceCMD
+from wofryimpl.propagator.light_source_cmd import WOLightSourceCMD
 
 
 class DiagonalizePythonScript(widget.OWWidget):
