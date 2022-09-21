@@ -1,19 +1,12 @@
 from orangewidget.settings import Setting
 from orangewidget import gui
 
-
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 
-from oasys.util.oasys_objects import OasysPreProcessorData, OasysSurfaceData
-
-from syned.widget.widget_decorator import WidgetDecorator
-
 from wofryimpl.beamline.optical_elements.refractors.thin_object_corrector import WOThinObjectCorrector
 
-from orangecontrib.wofry.util.wofry_objects import WofryData
 from orangecontrib.wofry.widgets.gui.ow_optical_element import OWWOOpticalElement
-
 
 
 class OWWOThinObjectCorrector2D(OWWOOpticalElement):

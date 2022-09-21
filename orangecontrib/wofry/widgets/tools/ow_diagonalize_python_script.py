@@ -402,7 +402,7 @@ def to_python_code(self, # self is beamline
     full_text_code += "\n\n\ndef main():"
 
     full_text_code += "\n" + indent + "from srxraylib.plot.gol import plot, plot_image"
-    full_text_code += "\n" + indent + "from orangecontrib.wofry.util.tally import TallyCoherentModes"
+    full_text_code += "\n" + indent + "from wofryimpl.propagator.util.tally import TallyCoherentModes"
     full_text_code += "\n" + indent + ""
     full_text_code += "\n" + indent + "tally = TallyCoherentModes()"
     full_text_code += "\n" + indent + "for my_mode_index in range(%g):" % mode_index_max

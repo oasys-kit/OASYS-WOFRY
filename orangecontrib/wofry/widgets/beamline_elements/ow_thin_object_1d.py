@@ -8,8 +8,7 @@ from orangewidget import gui
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 from oasys.util.oasys_util import TriggerIn, TriggerOut, EmittingStream
-from oasys.util.oasys_util import write_surface_file, read_surface_file
-from oasys.util.oasys_objects import OasysSurfaceData
+
 
 from syned.widget.widget_decorator import WidgetDecorator
 
@@ -164,13 +163,6 @@ class OWWOThinObject1D(OWWOOpticalElement1D):
         titles.append("O.E. Profile")
         return titles
 
-    # def propagate_wavefront(self):
-    #     super().propagate_wavefront()
-    #
-    #     if self.write_profile_flag == 1:
-    #         xx, yy, s = self.get_optical_element().get_surface_thickness_mesh(self.input_data.get_wavefront())
-    #         write_surface_file(s.T, xx, yy, self.write_profile, overwrite=True)
-    #         print("\nFile for OASYS " + self.write_profile + " written to disk.")
 
     def do_plot_results(self, progressBarValue=80): # OVERWRITTEN
 

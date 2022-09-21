@@ -102,7 +102,6 @@ class OWWORealLens2D(OWWOOpticalElement):
                      items=["2D", "1D (tangential)", "1D (sagittal)"], sendSelectedValue=False, orientation="horizontal")
 
 
-        # super().draw_specific_box() # adds boundary box
         gui.comboBox(self.lens_box, self, "aperture_shape", label="Aperture shape", labelWidth=350,
                      items=["Circular", "Rectangular"],
                      sendSelectedValue=False, orientation="horizontal", callback=self.set_visible)
@@ -150,8 +149,6 @@ class OWWORealLens2D(OWWOOpticalElement):
 
     def check_data(self):
         super().check_data()
-        # congruence.checkStrictlyPositiveNumber(numpy.abs(self.focal_x), "Horizontal Focal Length")
-        # congruence.checkStrictlyPositiveNumber(numpy.abs(self.focal_y), "Vertical Focal Length")
 
     def receive_specific_syned_data(self, optical_element):
         if not optical_element is None:

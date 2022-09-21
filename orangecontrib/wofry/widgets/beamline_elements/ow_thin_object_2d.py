@@ -3,7 +3,7 @@ from orangewidget import gui
 
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
-from oasys.util.oasys_util import write_surface_file, read_surface_file
+
 from oasys.util.oasys_objects import OasysSurfaceData
 
 from syned.widget.widget_decorator import WidgetDecorator

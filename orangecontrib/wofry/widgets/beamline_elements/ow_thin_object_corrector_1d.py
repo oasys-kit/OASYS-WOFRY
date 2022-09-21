@@ -4,15 +4,8 @@ from orangewidget import gui
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 
-from oasys.util.oasys_util import write_surface_file, read_surface_file
-from oasys.util.oasys_util import write_surface_file
-from oasys.util.oasys_objects import OasysPreProcessorData, OasysSurfaceData
-
-from syned.widget.widget_decorator import WidgetDecorator
-
 from wofryimpl.beamline.optical_elements.refractors.thin_object_corrector import WOThinObjectCorrector1D
 
-from orangecontrib.wofry.util.wofry_objects import WofryData
 from orangecontrib.wofry.widgets.gui.ow_optical_element_1d import OWWOOpticalElement1D
 
 
@@ -143,18 +136,6 @@ class OWWOThinObjectCorrector1D(OWWOOpticalElement1D):
         titles = super().get_titles()
         titles.append("O.E. Profile")
         return titles
-
-    # def propagate_wavefront(self):
-    #     super().propagate_wavefront()
-    #
-    #     if self.write_profile_flag == 1:
-    #         xx, yy = self.get_optical_element().get_surface_thickness_mesh(self.input_data.get_wavefront())
-    #
-    #         f = open(self.write_profile, 'w')
-    #         for i in range(xx.size):
-    #             f.write("%g  %g\n" % (xx[i], yy[i]))
-    #         f.close()
-    #         print("\nFile 1D " + self.write_profile + " written to disk.")
 
 
     def do_plot_results(self, progressBarValue=80): # OVERWRITTEN

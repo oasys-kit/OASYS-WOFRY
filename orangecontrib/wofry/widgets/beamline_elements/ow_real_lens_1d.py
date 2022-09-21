@@ -14,13 +14,9 @@ from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 from oasys.util.oasys_util import TriggerIn, TriggerOut, EmittingStream
 
-from syned.beamline.optical_elements.refractors.lens import Lens
-
 from syned.widget.widget_decorator import WidgetDecorator
 
 from orangecontrib.wofry.util.wofry_objects import WofryData
-
-from wofry.propagator.wavefront1D.generic_wavefront import GenericWavefront1D
 
 from orangecontrib.wofry.widgets.gui.ow_optical_element_1d import OWWOOpticalElement1D
 
@@ -53,7 +49,7 @@ class OWWORealLens1D(OWWOOpticalElement1D):
               WidgetDecorator.syned_input_data()[0]]
 
 
-    # Basic lens parameters____________________________________________________________________________________________#
+    # Basic lens parameters
     shape = Setting(1)
     radius = Setting(0.0005)
     wall_thickness = Setting(0.00005)
@@ -72,7 +68,7 @@ class OWWORealLens1D(OWWOOpticalElement1D):
 
     image1_path = os.path.join(resources.package_dirname("orangecontrib.wofry.widgets.gui"), "misc", "Refractor_parameters.png")
 
-    # Lens misaligments for Barc4ro____________________________________________________________________________________#
+    # Lens misaligments for Barc4ro
 
     mis_flag = Setting(0)
     xc = Setting(0.0)
@@ -129,14 +125,10 @@ class OWWORealLens1D(OWWOOpticalElement1D):
         #
         self.tab_err = oasysgui.createTabPage(self.tabs_setting, "Parms")
 
-        # Box refractor:_________________________________________________________________________
+        # Box refractor:
 
         box_refractor2 = oasysgui.widgetBox(self.tab_err, "1D Lens parameters", addSpace=False, orientation="vertical")
 
-
-        # gui.comboBox(box_refractor2, self, "number_of_refractive_surfaces", label="Number of refractive surfaces", labelWidth=350,
-        #              items=["1", "2"],
-        #              sendSelectedValue=False, orientation="horizontal")
 
         gui.comboBox(box_refractor2, self, "number_of_curved_surfaces", label="Number of curved surfaces", labelWidth=350,
                      items=["0 (parallel plate)", "1 (plano-concave)", "2 (bi-concave)"],
@@ -171,7 +163,7 @@ class OWWORealLens1D(OWWOOpticalElement1D):
         self.box_file_out = gui.widgetBox(box_refractor2, "", addSpace=False, orientation="vertical")
         oasysgui.lineEdit(self.box_file_out, self, "write_profile", "File name",
                             labelWidth=200, valueType=str, orientation="horizontal")
-        # error box _________________________________________________________________________
+        # error box
 
         box_errors = oasysgui.widgetBox(self.tab_err, "1D Lens error profile", addSpace=False, orientation="vertical")
 
@@ -202,7 +194,7 @@ class OWWORealLens1D(OWWOOpticalElement1D):
         box_misaligments = oasysgui.widgetBox(self.tab_mis, "Typical lens misalignments (only for parabolic shape)",
                                               addSpace=False, orientation="vertical")
 
-        # Tab Misalignments: Typical lens misalignments for Barc4ro_temporarily_only_for_parabolic______________________
+        # Tab Misalignments: Typical lens misalignments for Barc4ro_temporarily_only_for_parabolic
 
         self.mis_flag_box = oasysgui.widgetBox(box_misaligments, "", addSpace=False, orientation="vertical")
 
