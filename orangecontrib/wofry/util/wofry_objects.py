@@ -27,7 +27,7 @@ class WofryData(object):
         self.__wavefront = wavefront.duplicate()
 
     def duplicate(self):
-        return WofryData(wavefront=self.get_wavefront(),
-                         beamline=self.get_beamline())
+        return WofryData(wavefront=self.get_wavefront().duplicate(),
+                         beamline=self.get_beamline().duplicate())
 
 
