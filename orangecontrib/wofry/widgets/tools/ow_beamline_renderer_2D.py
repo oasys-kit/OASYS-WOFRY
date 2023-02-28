@@ -51,7 +51,7 @@ from wofry.propagator.wavefront2D.generic_wavefront import GenericWavefront2D
 from wofryimpl.beamline.optical_elements.absorbers.slit import WOSlit
 from wofryimpl.beamline.optical_elements.absorbers.beam_stopper import WOBeamStopper
 from wofryimpl.beamline.optical_elements.ideal_elements.screen import WOScreen
-from wofryimpl.beamline.optical_elements.ideal_elements.lens import WOIdealLens
+from wofryimpl.beamline.optical_elements.ideal_elements.ideal_lens import WOIdealLens
 from orangecontrib.wofry.util.wofry_objects import WofryData
 
 from oasys.widgets.abstract.beamline_rendering.ow_abstract_beamline_renderer import AbstractBeamlineRenderer, AspectRatioModifier, Orientations, OpticalElementsColors, \

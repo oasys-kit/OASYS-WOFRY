@@ -3,9 +3,9 @@ from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 
-from syned.beamline.optical_elements.ideal_elements.lens import IdealLens
+from syned.beamline.optical_elements.ideal_elements.ideal_lens import IdealLens
 
-from wofryimpl.beamline.optical_elements.ideal_elements.lens import WOIdealLens1D
+from wofryimpl.beamline.optical_elements.ideal_elements.ideal_lens import WOIdealLens1D
 
 from orangecontrib.wofry.widgets.gui.ow_optical_element_1d import OWWOOpticalElement1D
 
