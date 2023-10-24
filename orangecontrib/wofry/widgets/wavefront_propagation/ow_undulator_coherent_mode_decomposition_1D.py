@@ -55,7 +55,6 @@ class OWUndulatorCoherentModeDecomposition1D(WofryWidget):
     steps_start      = Setting(-0.00005)
     steps_step       = Setting(1e-7)
 
-
     sigma_h = Setting(3.01836e-05)
     sigma_v = Setting(3.63641e-06)
     sigma_divergence_h = Setting(4.36821e-06)
@@ -71,14 +70,18 @@ class OWUndulatorCoherentModeDecomposition1D(WofryWidget):
     # sigma_h sigma_divergence_h sigma_v sigma_divergence_v
 
 
-
-
     flag_gsm = Setting(0)
     scan_direction_flag = Setting(0)
     mode_index = Setting(0)
 
     spectral_density_threshold = Setting(0.99)
     correction_factor = Setting(1.0)
+
+    #Advance Settings
+    
+    distance_to_screen = Setting(100)    
+    magnification_x_forward = Setting(100)
+    magnification_x_backward = Setting(0.01)
 
     # to store calculations
     coherent_mode_decomposition = None
@@ -117,6 +120,7 @@ class OWUndulatorCoherentModeDecomposition1D(WofryWidget):
 
         self.tab_settings = oasysgui.createTabPage(tabs_setting, "Settings")
         self.tab_lightsource = oasysgui.createTabPage(tabs_setting, "Light Source")
+        self.tab_advance_settings = oasysgui.createTabPage(tabs_setting, "Advance Settings")
 
         #
         # Settings
@@ -203,7 +207,6 @@ class OWUndulatorCoherentModeDecomposition1D(WofryWidget):
 
 
 
-
         self.emittances_box_h = oasysgui.widgetBox(self.tab_lightsource, "Electron Horizontal beam sizes",
                                             addSpace=True, orientation="vertical")
         self.emittances_box_v = oasysgui.widgetBox(self.tab_lightsource, "Electron Vertical beam sizes",
@@ -226,9 +229,6 @@ class OWUndulatorCoherentModeDecomposition1D(WofryWidget):
                             valueType=float, orientation="horizontal")
 
 
-
-
-
         # oasysgui.lineEdit(self.left_box_2_2, self, "electron_beam_size_h",       "Horizontal Beam Size \u03c3x [m]",          labelWidth=260, valueType=float, orientation="horizontal",  callback=self.update)
         # oasysgui.lineEdit(self.left_box_2_2, self, "electron_beam_size_v",       "Vertical Beam Size \u03c3y [m]",            labelWidth=260, valueType=float, orientation="horizontal",  callback=self.update)
         # oasysgui.lineEdit(self.left_box_2_2, self, "electron_beam_divergence_h", "Horizontal Beam Divergence \u03c3'x [rad]", labelWidth=260, valueType=float, orientation="horizontal",  callback=self.update)
@@ -247,13 +247,33 @@ class OWUndulatorCoherentModeDecomposition1D(WofryWidget):
         oasysgui.lineEdit(left_box_1, self, "K_vertical", "Vertical K", labelWidth=260,
                           valueType=float, orientation="horizontal")
 
+        #
+        # Advance Settings
+        #
+        adv_box_space = oasysgui.widgetBox(self.tab_advance_settings, "Propagation Settings", addSpace=False, orientation="vertical")
+
+        #Distance to screen        
+       
+        oasysgui.lineEdit(adv_box_space, self, "distance_to_screen", "Distance to Screen (m)",
+                          labelWidth=300, tooltip="distance_to_screen",
+                          valueType=float, orientation="horizontal")
+        #Forward Magnification        
+        oasysgui.lineEdit(adv_box_space, self, "magnification_x_forward", "Far field magnification",
+                          labelWidth=300, tooltip="magnification_x_forward",
+                          valueType=float, orientation="horizontal")     
+
+        #Backward Magnification
+        oasysgui.lineEdit(adv_box_space, self, "magnification_x_backward", "Back propagation magnification",
+                          labelWidth=300, tooltip="magnification_x_backward",
+                          valueType=float, orientation="horizontal")
+        
 
         self.set_visible()
 
 
     def set_visible(self):
         self.emittances_box_h.setVisible(self.scan_direction_flag == 0)
-        self.emittances_box_v.setVisible(self.scan_direction_flag == 1)
+        self.emittances_box_v.setVisible(self.scan_direction_flag == 1)        
 
     def increase_mode_index(self):
         self.mode_index += 1
@@ -434,10 +454,12 @@ class OWUndulatorCoherentModeDecomposition1D(WofryWidget):
             photon_energy=self.photon_energy,
             abscissas_interval=self.range_to - self.range_from,
             number_of_points=self.number_of_points,
-            distance_to_screen=100.0,
+            distance_to_screen=self.distance_to_screen,
             scan_direction=scan_direction,
             sigmaxx=sigmaxx,
             sigmaxpxp=sigmaxpxp,
+            magnification_x_forward=self.magnification_x_forward,
+            magnification_x_backward=self.magnification_x_backward,
             useGSMapproximation=useGSMapproximation)
         # make calculation
         self.coherent_mode_decomposition_results = self.coherent_mode_decomposition.calculate()
