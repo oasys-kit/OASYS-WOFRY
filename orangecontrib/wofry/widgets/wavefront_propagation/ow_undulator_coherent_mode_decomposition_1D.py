@@ -83,6 +83,11 @@ class OWUndulatorCoherentModeDecomposition1D(WofryWidget):
     magnification_x_forward = Setting(100)
     magnification_x_backward = Setting(0.01)
 
+    e_energy_dispersion_flag = Setting(0)
+    e_energy_dispersion_sigma_relative = Setting(1e-3)
+    e_energy_dispersion_interval_in_sigma_units = Setting(6.0)
+    e_energy_dispersion_points = Setting(11)
+
     # to store calculations
     coherent_mode_decomposition = None
     coherent_mode_decomposition_results = None
@@ -266,14 +271,42 @@ class OWUndulatorCoherentModeDecomposition1D(WofryWidget):
         oasysgui.lineEdit(adv_box_space, self, "magnification_x_backward", "Back propagation magnification",
                           labelWidth=300, tooltip="magnification_x_backward",
                           valueType=float, orientation="horizontal")
-        
+
+        # e_energy_dispersion_flag = Setting(0)
+        # e_energy_dispersion_sigma_relative = Setting(1e-3)
+        # e_energy_dispersion_interval_in_sigma_units = Setting(6.0)
+        # e_energy_dispersion_points = Setting(11)
+        ener_dispersion = oasysgui.widgetBox(self.tab_advance_settings, "Electron energy dispersion", addSpace=False,
+                                           orientation="vertical")
+
+        gui.comboBox(ener_dispersion, self, "e_energy_dispersion_flag", label="Average CSD over energy dispersion", labelWidth=350,
+                     items=["No",
+                            "Yes"
+                            ],
+                     callback=self.set_visible,
+                     tooltip="e_energy_dispersion_flag",
+                     sendSelectedValue=False, orientation="horizontal")
+
+        self.ener_dispersion_panel = oasysgui.widgetBox(ener_dispersion, "", addSpace=False, orientation="vertical")
+        oasysgui.lineEdit(self.ener_dispersion_panel, self, "e_energy_dispersion_sigma_relative", "Delta E/E (sigma)",
+                          labelWidth=300, tooltip="e_energy_dispersion_sigma_relative",
+                          valueType=float, orientation="horizontal")
+
+        oasysgui.lineEdit(self.ener_dispersion_panel, self, "e_energy_dispersion_interval_in_sigma_units", "Full interval in sigma units",
+                          labelWidth=300, tooltip="e_energy_dispersion_interval_in_sigma_units",
+                          valueType=float, orientation="horizontal")
+
+        oasysgui.lineEdit(self.ener_dispersion_panel, self, "e_energy_dispersion_points", "Number of points",
+                          labelWidth=300, tooltip="e_energy_dispersion_points",
+                          valueType=int, orientation="horizontal")
 
         self.set_visible()
 
 
     def set_visible(self):
         self.emittances_box_h.setVisible(self.scan_direction_flag == 0)
-        self.emittances_box_v.setVisible(self.scan_direction_flag == 1)        
+        self.emittances_box_v.setVisible(self.scan_direction_flag == 1)
+        self.ener_dispersion_panel.setVisible(self.e_energy_dispersion_flag == 1)
 
     def increase_mode_index(self):
         self.mode_index += 1
@@ -314,6 +347,7 @@ class OWUndulatorCoherentModeDecomposition1D(WofryWidget):
         self.titles = ["Emission size",
                        "Far field emission",
                        "Cross Spectral Density",
+                       "Spectral Degree of Coh.",
                        "Cumulated occupation",
                        "Eigenfunctions",
                        "Spectral Density",
@@ -460,7 +494,12 @@ class OWUndulatorCoherentModeDecomposition1D(WofryWidget):
             sigmaxpxp=sigmaxpxp,
             magnification_x_forward=self.magnification_x_forward,
             magnification_x_backward=self.magnification_x_backward,
-            useGSMapproximation=useGSMapproximation)
+            useGSMapproximation=useGSMapproximation,
+            e_energy_dispersion_flag=self.e_energy_dispersion_flag,
+            e_energy_dispersion_sigma_relative=self.e_energy_dispersion_sigma_relative,
+            e_energy_dispersion_interval_in_sigma_units=self.e_energy_dispersion_interval_in_sigma_units,
+            e_energy_dispersion_points=self.e_energy_dispersion_points,
+        )
         # make calculation
         self.coherent_mode_decomposition_results = self.coherent_mode_decomposition.calculate()
 
@@ -507,9 +546,9 @@ class OWUndulatorCoherentModeDecomposition1D(WofryWidget):
             self.plot_data1D(1e6 * abscissas,
                              wf.get_intensity(),
                              progressBarValue=90.0,
-                             tabs_canvas_index=6,
-                             plot_canvas_index=6,
-                             title=self.titles[6],
+                             tabs_canvas_index=7,
+                             plot_canvas_index=7,
+                             title=self.titles[7],
                              xtitle="Spatial Coordinate [$\mu$m]",
                              ytitle="Intensity",
                              calculate_fwhm=True)
@@ -575,6 +614,19 @@ class OWUndulatorCoherentModeDecomposition1D(WofryWidget):
                              ytitle="Spatial Coordinate x2 [$\mu$m]")
 
             #
+            # plot Spectral Degree of Coherence
+            #
+
+            SDC = self.coherent_mode_decomposition.get_spectral_degree_of_coherence()
+            self.plot_data2D(SDC,
+                             1e6 * abscissas,
+                             1e6 * abscissas,
+                             progressBarValue, 3, 1,
+                             title=self.titles[3],
+                             xtitle="Spatial Coordinate x1 [$\mu$m]",
+                             ytitle="Spatial Coordinate x2 [$\mu$m]")
+
+            #
             # plot cumulated occupation
             #
             eigenvalues  = self.coherent_mode_decomposition_results["eigenvalues"]
@@ -589,9 +641,9 @@ class OWUndulatorCoherentModeDecomposition1D(WofryWidget):
             self.plot_data1D(x,
                              cumulated_occupation,
                              progressBarValue=progressBarValue,
-                             tabs_canvas_index=3,
-                             plot_canvas_index=3,
-                             title=self.titles[3],
+                             tabs_canvas_index=4,
+                             plot_canvas_index=4,
+                             title=self.titles[4],
                              xtitle="mode index",
                              ytitle="Cumulated occupation",
                              calculate_fwhm=False)
@@ -613,9 +665,9 @@ class OWUndulatorCoherentModeDecomposition1D(WofryWidget):
             self.plot_multi_data1D(1e6*abscissas,
                              y_list,
                              progressBarValue=progressBarValue,
-                             tabs_canvas_index=4,
-                             plot_canvas_index=4,
-                             title=self.titles[4],
+                             tabs_canvas_index=5,
+                             plot_canvas_index=5,
+                             title=self.titles[5],
                              xtitle="x [um]",
                              ytitles=ytitles,
                              colors=colors,
@@ -641,9 +693,9 @@ class OWUndulatorCoherentModeDecomposition1D(WofryWidget):
             self.plot_multi_data1D(1e6 * abscissas,
                              [SD,numpy.real(y)],
                              progressBarValue=progressBarValue,
-                             tabs_canvas_index=5,
-                             plot_canvas_index=5,
-                             title=self.titles[5],
+                             tabs_canvas_index=6,
+                             plot_canvas_index=6,
+                             title=self.titles[6],
                              xtitle="x [um]",
                              ytitles=["SD from CSD","SD from modes"],
                              colors=colors)
