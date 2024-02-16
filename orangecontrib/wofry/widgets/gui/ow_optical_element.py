@@ -151,6 +151,7 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
                      items=["No", "Yes"],
                      sendSelectedValue=False, orientation="horizontal")
 
+        # integral
         self.integral_box = oasysgui.widgetBox(self.tab_pro, "", addSpace=False, orientation="vertical", height=90)
 
 
@@ -160,6 +161,12 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
                      items=["No", "Yes"],
                      sendSelectedValue=False, orientation="horizontal")
 
+
+        oasysgui.lineEdit(self.integral_box, self, "magnification_x", "Magnification X",
+                          labelWidth=260, valueType=float, orientation="horizontal")
+
+        oasysgui.lineEdit(self.integral_box, self, "magnification_y", "Magnification Y",
+                          labelWidth=260, valueType=float, orientation="horizontal")
 
         #new zoom
         self.zoom_box = oasysgui.widgetBox(self.tab_pro, "", addSpace=False, orientation="vertical", height=90)
@@ -248,8 +255,10 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
             propagator_info = {
                 "propagator_class_name": "Integral2D",
                 "propagator_handler_name": self.get_handler_name(),
-                "propagator_additional_parameters_names": [],
-                "propagator_additional_parameters_values": []}
+                "propagator_additional_parameters_names": ["shuffle_interval", "calculate_grid_only",
+                                                           "magnification_x", "magnification_y"],
+                "propagator_additional_parameters_values": [self.shuffle_interval, self.calculate_grid_only,
+                                                            self.magnification_x, self.magnification_y]}
         elif self.propagator == 4:
             propagator_info = {
                 "propagator_class_name": "FresnelZoomXY2D",
@@ -333,6 +342,8 @@ class OWWOOpticalElement(WofryWidget, WidgetDecorator):
         elif self.propagator == 3:
             propagation_parameters.set_additional_parameters("shuffle_interval", self.shuffle_interval)
             propagation_parameters.set_additional_parameters("calculate_grid_only", self.calculate_grid_only)
+            propagation_parameters.set_additional_parameters("magnification_x", self.magnification_x)
+            propagation_parameters.set_additional_parameters("magnification_y", self.magnification_y)
         elif self.propagator == 4:
             propagation_parameters.set_additional_parameters("shift_half_pixel", self.shift_half_pixel == 1)
             propagation_parameters.set_additional_parameters("magnification_x", self.magnification_x)
