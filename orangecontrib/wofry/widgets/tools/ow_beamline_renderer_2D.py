@@ -55,7 +55,7 @@ from wofryimpl.beamline.optical_elements.ideal_elements.ideal_lens import WOIdea
 
 from orangecontrib.wofry.util.wofry_objects import WofryData
 
-from syned.gui.beamline_rendering.ow_abstract_beamline_renderer import AbstractBeamlineRenderer, AspectRatioModifier, Orientations, OpticalElementsColors, \
+from syned_gui.beamline_rendering.ow_abstract_beamline_renderer import AbstractBeamlineRenderer, AspectRatioModifier, Orientations, OpticalElementsColors, \
     initialize_arrays, get_height_shift
 
 class BeamlineRenderer2D(AbstractBeamlineRenderer):
