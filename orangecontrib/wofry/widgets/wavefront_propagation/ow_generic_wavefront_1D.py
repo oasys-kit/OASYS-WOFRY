@@ -217,7 +217,7 @@ class OWGenericWavefront1D(WofryWidget):
         oasysgui.lineEdit(self.gaussian_box, self, "gaussian_sigma", "Sigma I",
                           labelWidth=250, tooltip="gaussian_sigma", valueType=float, orientation="horizontal")
 
-        oasysgui.lineEdit(self.gaussian_box, self, "gaussian_amplitude", "Amplitude of the Spectral Density",
+        oasysgui.lineEdit(self.gaussian_box, self, "gaussian_amplitude", "Amplitude",
                           labelWidth=250, tooltip="gaussian_amplitude", valueType=float, orientation="horizontal")
 
         oasysgui.lineEdit(self.gaussian_box, self, "gaussian_shift", "Center",
@@ -231,7 +231,7 @@ class OWGenericWavefront1D(WofryWidget):
         oasysgui.lineEdit(self.gsm_box, self, "gaussian_beta", "beta = Sigma Mu/Sigma I",
                           labelWidth=250, tooltip="gaussian_beta", valueType=float, orientation="horizontal")
 
-        oasysgui.lineEdit(self.gsm_box, self, "gaussian_amplitude", "Amplitude of the Spectral Density",
+        oasysgui.lineEdit(self.gsm_box, self, "gaussian_amplitude", "Amplitude",
                           labelWidth=250, tooltip="gaussian_amplitude", valueType=float, orientation="horizontal")
 
 
@@ -309,7 +309,7 @@ class OWGenericWavefront1D(WofryWidget):
             congruence.checkPositiveNumber(numpy.abs(self.center), "Center")
         elif self.kind_of_wave > 1:
             congruence.checkStrictlyPositiveNumber(self.gaussian_sigma, "Sigma")
-            congruence.checkStrictlyPositiveNumber(self.gaussian_amplitude, "Amplitude of the Gaussian")
+            congruence.checkStrictlyPositiveNumber(self.gaussian_amplitude, "Amplitude")
             congruence.checkNumber(self.gaussian_shift, "Center of the Gaussian")
 
             if self.kind_of_wave == 3:

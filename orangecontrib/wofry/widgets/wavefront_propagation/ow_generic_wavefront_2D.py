@@ -224,7 +224,7 @@ class OWGenericWavefront2D(WofryWidget):
         oasysgui.lineEdit(self.gaussian_box, self, "gaussian_sigma_v", "Sigma (V)",
                           labelWidth=250, valueType=float, orientation="horizontal")
 
-        oasysgui.lineEdit(self.gaussian_box, self, "gaussian_amplitude", "Amplitude of the Spectral Density",
+        oasysgui.lineEdit(self.gaussian_box, self, "gaussian_amplitude", "Amplitude",
                           labelWidth=250, valueType=float, orientation="horizontal")
 
         # ---- GAUSSIAN SHELL MODEL
@@ -243,7 +243,7 @@ class OWGenericWavefront2D(WofryWidget):
                           labelWidth=250, valueType=float, orientation="horizontal")
 
 
-        oasysgui.lineEdit(self.gsm_box, self, "gaussian_amplitude", "Amplitude of the Spectral Density",
+        oasysgui.lineEdit(self.gsm_box, self, "gaussian_amplitude", "Amplitude",
                           labelWidth=250, valueType=float, orientation="horizontal")
 
         oasysgui.lineEdit(self.gsm_box, self, "gaussian_mode_h", "H Mode",
@@ -314,7 +314,7 @@ class OWGenericWavefront2D(WofryWidget):
         elif self.kind_of_wave > 1:
             congruence.checkStrictlyPositiveNumber(self.gaussian_sigma_h, "Sigma (H)")
             congruence.checkStrictlyPositiveNumber(self.gaussian_sigma_v, "Sigma (V)")
-            congruence.checkStrictlyPositiveNumber(self.gaussian_amplitude, "Amplitude of the Spectral Density")
+            congruence.checkStrictlyPositiveNumber(self.gaussian_amplitude, "Amplitude")
 
             if self.kind_of_wave == 3:
                 congruence.checkPositiveNumber(self.gaussian_mode_h, "Mode (H)")
