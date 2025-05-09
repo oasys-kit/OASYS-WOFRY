@@ -17,6 +17,7 @@ from syned.beamline.beamline_element import BeamlineElement
 from syned.beamline.shape import *
 
 from wofry.propagator.propagator import PropagationManager, PropagationElements, PropagationParameters
+from wofryimpl.propagator.propagators1D import initialize_default_propagator_1D
 from wofryimpl.propagator.propagators1D.fresnel import Fresnel1D
 from wofryimpl.propagator.propagators1D.fresnel_convolution import FresnelConvolution1D
 from wofryimpl.propagator.propagators1D.fraunhofer import Fraunhofer1D
@@ -27,20 +28,10 @@ from wofryimpl.propagator.propagators1D.fresnel_zoom_scaling_theorem import Fres
 from orangecontrib.wofry.util.wofry_objects import WofryData
 from orangecontrib.wofry.widgets.gui.ow_wofry_widget import WofryWidget
 
-def initialize_default_propagator_1D():
-    propagator = PropagationManager.Instance()
-
-    propagator.add_propagator(Fraunhofer1D())
-    propagator.add_propagator(Fresnel1D())
-    propagator.add_propagator(FresnelConvolution1D())
-    propagator.add_propagator(Integral1D())
-    propagator.add_propagator(FresnelZoom1D())
-    propagator.add_propagator(FresnelZoomScaling1D())
-
 try:
     initialize_default_propagator_1D()
-except:
-    pass
+except Exception as e:
+    print("cannot initialize Wofry 1D propagators: " + str(e))
 
 class OWWOOpticalElement1D(WofryWidget, WidgetDecorator):
 
