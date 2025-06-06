@@ -1,7 +1,4 @@
-#TODO: this widget is valid for 1D and 2D wavefronts. Is there a better way to discriminate without duplicating widgets?
-
 import os
-import h5py
 from PyQt5.QtWidgets import QMessageBox
 
 try:
@@ -14,8 +11,8 @@ from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
 from oasys.widgets import widget as oasyswidget
 
-from wofry.propagator.wavefront2D.generic_wavefront import GenericWavefront2D
-from wofry.propagator.wavefront1D.generic_wavefront import GenericWavefront1D
+from wofryimpl.propagator.light_source_h5file import WOH5FileLightSource
+from wofryimpl.beamline.beamline import WOBeamline
 
 from orangecontrib.wofry.util.wofry_objects import WofryData
 
@@ -78,6 +75,15 @@ class OWWavefrontFileReader(oasyswidget.OWWidget):
         gui.rubber(self.controlArea)
 
 
+    def get_light_source(self):
+        light_source = WOH5FileLightSource(
+            name   = self.name                ,
+            h5file = self.file_name,
+        )
+        return light_source
+
+
+
     def read_file(self):
 
         dialog = DataFileDialog(self)
@@ -103,18 +109,18 @@ class OWWavefrontFileReader(oasyswidget.OWWidget):
             congruence.checkEmptyString(self.file_name, "File Name")
             congruence.checkFile(self.file_name)
 
-            # get wavefront dimension
-            f = h5py.File(self.file_name, 'r')
-            dimension = f["/"+self.data_path+"/wfr_dimension"][()]
-            f.close()
-            if dimension == 1:
-                wfr = GenericWavefront1D.load_h5_file(self.file_name,self.data_path)
+            light_source = self.get_light_source()
+            wfr = light_source.get_wavefront()
+
+            beamline = WOBeamline(light_source=light_source)
+
+
+            if light_source.get_dimension() == 1:
                 print(">>> sending 1D wavefront")
-                self.send("WofryData1D", WofryData(wavefront=wfr))
-            elif dimension == 2:
-                wfr = GenericWavefront2D.load_h5_file(self.file_name,self.data_path)
+                self.send("WofryData1D", WofryData(wavefront=wfr, beamline=beamline))
+            elif light_source.get_dimension() == 2:
                 print(">>> sending 2D wavefront")
-                self.send("WofryData2D", WofryData(wavefront=wfr))
+                self.send("WofryData2D", WofryData(wavefront=wfr, beamline=beamline))
             else:
                 raise Exception("Invalid wavefront dimension")
         except Exception as e:
