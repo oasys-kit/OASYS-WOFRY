@@ -222,115 +222,113 @@ class OWWOOpticalElement1D(WofryWidget, WidgetDecorator):
 
         sys.stdout = EmittingStream(textWritten=self.writeStdOut)
 
-        if self.input_data is None: raise Exception("No Input Data")
-
-        self.check_data()
-
-        # propagation to o.e.
-
-        input_wavefront  = self.input_data.get_wavefront()
-        beamline         = self.input_data.get_beamline().duplicate()
-
-        optical_element = self.get_optical_element()
-        optical_element.name = self.oe_name if not self.oe_name is None else self.windowTitle()
-
-        beamline_element = BeamlineElement(optical_element=optical_element,
-                                           coordinates=ElementCoordinates(p=self.p,
-                                                                          q=self.q,
-                                                                          angle_radial=numpy.radians(self.angle_radial),
-                                                                          angle_azimuthal=numpy.radians(self.angle_azimuthal)))
-
-        #
-        # this will store the propagation parameters in beamline in order to perform the propagation in the script
-        #
-        # 1D
-        # ==
-        #
-        # propagators_list = ["Fresnel",    "Fresnel (Convolution)",  "Fraunhofer",    "Integral",    "Fresnel Zoom",    "Fresnel Zoom Scaled"]
-        # class_name       = ["Fresnel1D",  "FresnelConvolution1D",   "Fraunhofer1D",  "Integral1D",  "FresnelZoom1D",   "FresnelZoomScaling1D"]
-        # handler_name     = ["FRESNEL_1D", "FRESNEL_CONVOLUTION_1D", "FRAUNHOFER_1D", "INTEGRAL_1D", "FRESNEL_ZOOM_1D", "FRESNEL_ZOOM_SCALING_1D"]
-
-        if self.propagator == 0:
-            propagator_info = {
-                "propagator_class_name": "Fresnel",
-                "propagator_handler_name": self.get_handler_name(),
-                "propagator_additional_parameters_names": [],
-                "propagator_additional_parameters_values": []}
-        elif self.propagator == 1:
-            propagator_info = {
-                "propagator_class_name": "FresnelConvolution1D",
-                "propagator_handler_name": self.get_handler_name(),
-                "propagator_additional_parameters_names": [],
-                "propagator_additional_parameters_values": []}
-        elif self.propagator == 2:
-            propagator_info = {
-                "propagator_class_name": "Fraunhofer1D",
-                "propagator_handler_name": self.get_handler_name(),
-                "propagator_additional_parameters_names": [],
-                "propagator_additional_parameters_values": []}
-        elif self.propagator == 3:
-            propagator_info = {
-                "propagator_class_name": "Integral1D",
-                "propagator_handler_name": self.get_handler_name(),
-                "propagator_additional_parameters_names": ['magnification_x', 'magnification_N'],
-                "propagator_additional_parameters_values": [self.magnification_x, self.magnification_N]}
-        elif self.propagator == 4:
-            propagator_info = {
-                "propagator_class_name": "FresnelZoom1D",
-                "propagator_handler_name": self.get_handler_name(),
-                "propagator_additional_parameters_names": ['magnification_x'],
-                "propagator_additional_parameters_values": [self.magnification_x]}
-        elif self.propagator == 5:
-            propagator_info = {
-                "propagator_class_name": "FresnelZoomScaling1D",
-                "propagator_handler_name": self.get_handler_name(),
-                "propagator_additional_parameters_names": ['magnification_x','radius'],
-                "propagator_additional_parameters_values": [self.magnification_x, self.wavefront_radius]}
-
-        beamline.append_beamline_element(beamline_element, propagator_info)
-
-        propagation_elements = PropagationElements()
-        propagation_elements.add_beamline_element(beamline_element)
-
-        propagation_parameters = PropagationParameters(wavefront=input_wavefront.duplicate(),
-                                                       propagation_elements=propagation_elements)
-
-        self.set_additional_parameters(propagation_parameters)
-
-        self.setStatusMessage("Begin Propagation")
-
-        propagator = PropagationManager.Instance()
-
-        output_wavefront = propagator.do_propagation(propagation_parameters=propagation_parameters,
-                                                     handler_name=self.get_handler_name())
-
-        self.setStatusMessage("Propagation Completed")
-
-        self.wavefront_to_plot = output_wavefront
-
-
-        if self.view_type > 0:
-            self.initializeTabs()
-            self.do_plot_results()
-        else:
-            self.progressBarFinished()
-
-        self.send("WofryData", WofryData(beamline=beamline, wavefront=output_wavefront))
-        self.send("Trigger", TriggerIn(new_object=True))
-
-
-
-        # try:
-        if True:
-            self.wofry_python_script.set_code(beamline.to_python_code())
-        # except:
-        #     pass
-
-        self.setStatusMessage("")
         try:
-            self.print_intensities()
-        except:
-            pass
+            if self.input_data is None: raise Exception("No Input Data")
+
+            self.check_data()
+
+            # propagation to o.e.
+
+            input_wavefront  = self.input_data.get_wavefront()
+            beamline         = self.input_data.get_beamline().duplicate()
+
+            optical_element = self.get_optical_element()
+            optical_element.name = self.oe_name if not self.oe_name is None else self.windowTitle()
+
+            beamline_element = BeamlineElement(optical_element=optical_element,
+                                               coordinates=ElementCoordinates(p=self.p,
+                                                                              q=self.q,
+                                                                              angle_radial=numpy.radians(self.angle_radial),
+                                                                              angle_azimuthal=numpy.radians(self.angle_azimuthal)))
+
+            #
+            # this will store the propagation parameters in beamline in order to perform the propagation in the script
+            #
+            # 1D
+            # ==
+            #
+            # propagators_list = ["Fresnel",    "Fresnel (Convolution)",  "Fraunhofer",    "Integral",    "Fresnel Zoom",    "Fresnel Zoom Scaled"]
+            # class_name       = ["Fresnel1D",  "FresnelConvolution1D",   "Fraunhofer1D",  "Integral1D",  "FresnelZoom1D",   "FresnelZoomScaling1D"]
+            # handler_name     = ["FRESNEL_1D", "FRESNEL_CONVOLUTION_1D", "FRAUNHOFER_1D", "INTEGRAL_1D", "FRESNEL_ZOOM_1D", "FRESNEL_ZOOM_SCALING_1D"]
+
+            if self.propagator == 0:
+                propagator_info = {
+                    "propagator_class_name": "Fresnel",
+                    "propagator_handler_name": self.get_handler_name(),
+                    "propagator_additional_parameters_names": [],
+                    "propagator_additional_parameters_values": []}
+            elif self.propagator == 1:
+                propagator_info = {
+                    "propagator_class_name": "FresnelConvolution1D",
+                    "propagator_handler_name": self.get_handler_name(),
+                    "propagator_additional_parameters_names": [],
+                    "propagator_additional_parameters_values": []}
+            elif self.propagator == 2:
+                propagator_info = {
+                    "propagator_class_name": "Fraunhofer1D",
+                    "propagator_handler_name": self.get_handler_name(),
+                    "propagator_additional_parameters_names": [],
+                    "propagator_additional_parameters_values": []}
+            elif self.propagator == 3:
+                propagator_info = {
+                    "propagator_class_name": "Integral1D",
+                    "propagator_handler_name": self.get_handler_name(),
+                    "propagator_additional_parameters_names": ['magnification_x', 'magnification_N'],
+                    "propagator_additional_parameters_values": [self.magnification_x, self.magnification_N]}
+            elif self.propagator == 4:
+                propagator_info = {
+                    "propagator_class_name": "FresnelZoom1D",
+                    "propagator_handler_name": self.get_handler_name(),
+                    "propagator_additional_parameters_names": ['magnification_x'],
+                    "propagator_additional_parameters_values": [self.magnification_x]}
+            elif self.propagator == 5:
+                propagator_info = {
+                    "propagator_class_name": "FresnelZoomScaling1D",
+                    "propagator_handler_name": self.get_handler_name(),
+                    "propagator_additional_parameters_names": ['magnification_x','radius'],
+                    "propagator_additional_parameters_values": [self.magnification_x, self.wavefront_radius]}
+
+            beamline.append_beamline_element(beamline_element, propagator_info)
+
+            propagation_elements = PropagationElements()
+            propagation_elements.add_beamline_element(beamline_element)
+
+            propagation_parameters = PropagationParameters(wavefront=input_wavefront.duplicate(),
+                                                           propagation_elements=propagation_elements)
+
+            self.set_additional_parameters(propagation_parameters)
+
+            self.setStatusMessage("Begin Propagation")
+
+            propagator = PropagationManager.Instance()
+
+            output_wavefront = propagator.do_propagation(propagation_parameters=propagation_parameters,
+                                                         handler_name=self.get_handler_name())
+
+            self.setStatusMessage("Propagation Completed")
+
+            self.wavefront_to_plot = output_wavefront
+
+
+            if self.view_type > 0:
+                self.initializeTabs()
+                self.do_plot_results()
+            else:
+                self.progressBarFinished()
+
+            self.send("WofryData", WofryData(beamline=beamline, wavefront=output_wavefront))
+            self.send("Trigger", TriggerIn(new_object=True))
+
+            self.wofry_python_script.set_code(beamline.to_python_code())
+
+            self.setStatusMessage("")
+
+            try:    self.print_intensities()
+            except: pass
+        except Exception as exception:
+            QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)
+
+            if self.IS_DEVELOP: raise exception
 
     def print_intensities(self):
         input_wavefront = self.input_data.get_wavefront()
